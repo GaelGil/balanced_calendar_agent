@@ -1,3 +1,7 @@
+# The Backend
+
+Uses Flask, sqlalchemy, and flask-migrations
+
 idea
 
 - agent reads calender in month -> get calender events in current month
