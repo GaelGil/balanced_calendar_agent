@@ -36,6 +36,7 @@ class ChatService:
 
         print("Getting tools from MCP ...")
         self.tools = await self.mcp_client.get_tools()
+
         print(f"Loaded {len(self.tools)} tools from MCP")
         print(f"Tools: {self.tools} \n")
         print("\n=== CHAT SERVICE: Processing new message ===")
