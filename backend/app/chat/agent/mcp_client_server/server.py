@@ -1,11 +1,16 @@
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.utilities.logging import get_logger
+from openai import OpenAI
 from dotenv import load_dotenv
-from pathlib import Path
 
+# from pathlib import Path
+import os
 
-load_dotenv(Path("../.env"))
+load_dotenv()
+# run using python -m MCP.server
 
+ARXIV_NAMESPACE = "{http://www.w3.org/2005/Atom}"
+LLM = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 logger = get_logger(__name__)
 
@@ -18,55 +23,103 @@ mcp = FastMCP(
 
 
 @mcp.tool(
-    name="search_event_brite_events",
-    description="Search for events on eventbrite on a selected month",
+    name="get_calender_by_month",
+    description="Get users calendar by month",
 )
-def search_event_brite_events(month: str, location: str) -> list[dict]:
-    pass
+def get_calender_by_month(month: str) -> str:
+    return f"Calendar for month {month}"
 
 
 @mcp.tool(
-    name="search_luma_events",
-    description="Search for events on eventbrite on a selected month",
+    name="get_events_by_month",
+    description="Get the users events by month",
 )
-def search_luma_events(month: str, location: str) -> list[dict]:
-    pass
+def get_events_by_month(calendar: list[dict]) -> str:
+    return f"Events for month {calendar}"
 
 
 @mcp.tool(
     name="analyze_events",
-    description="Analyzes the provided events to see which are the most relevant",
+    description="Analyze the type of events in the calendar",
 )
-def analyze_events(events: list[dict]) -> list[dict]:
-    """Saves the provided text to a .txt file."""
-    pass
+def analyze_events(calendar: list[dict], strict: bool) -> str:
+    response = LLM.responses.parse(
+        model="gpt-4.1-mini",
+        input=[
+            {
+                "role": "developer",
+                "content": f"""
+                        You are an expert work life balancer, You take in a list of events in a calendar and determine if the events are overwhelimingly work. 
+                        You MUST analyzse each event and determine this
+                        After determining the type of event, you must write a proposed solution for the user to take action on.
+                        Ex: You have too many work events. Lets balance the work and non work events.
+                        If you determine events are balanced enough, you MUST write a response that is positive and encouraging.
+                        Example: great job! You have a balanced work life.
+
+                        Here is an example of a calendar:
+
+                        Here is a list of events in the calendar:
+                        
+                        event_id: 1
+                        event_title: Title
+                        event_duration: 2 hours
+                        event_location: Location
+                        event_description: Description
+
+                        ...
+                        
+                        event_id: n
+                        event_title: Title
+                        event_duration: 2 hours
+                        event_location: Location
+                        event_description: Description
+
+                        
+                        YOU MUST USE THE CALENDAR PROVIDED TO INFORM YOUR RESPONSE
+                        
+                        Here is the Calendar: {calendar}
+                        """,
+            },
+            {
+                "role": "user",
+                "content": "Ensure my calendar events are equal wellness events and work",
+            },
+        ],
+    )
+
+    return response
 
 
 @mcp.tool(
-    name="analyze_calender",
-    description="Analyze the events on the google calendar",
+    name="search_luma_events",
+    description="Search for events on Luma",
 )
-def analyze_calendar(calendar: list[dict]) -> str:
-    """"""
-    pass
+def search_luma_events(month: str) -> str:
+    return f"Luma events in {month}"
 
 
 @mcp.tool(
-    name="create_google_event",
-    description="Create an event on google calendar",
+    name="search_eventbrite_events",
+    description="Search for events on Eventbrite",
 )
-def create_google_event(event: dict) -> str:
-    """"""
-    pass
+def search_eventbrite_events(month: str) -> str:
+    return f"Eventbrite events in {month}"
 
 
 @mcp.tool(
-    name="update_calendar_event",
-    description="Update an event on google calendar",
+    name="calendar_availability",
+    description="search calendar availability",
 )
-def assemble_content(calendar: list[dict]) -> str:
-    """"""
-    pass
+def calendar_availability(month: str) -> str:
+    return f"Eventbrite events in {month}"
+
+
+@mcp.tool(
+    name="cretae_new_calendar_event",
+    description="Create a new calendar event",
+)
+def create_new_calendar_event(month: str, event: str, event_details: str) -> str:
+    return f"New calendar event in {month}: {event} - {event_details}"
 
 
 # Run the server
