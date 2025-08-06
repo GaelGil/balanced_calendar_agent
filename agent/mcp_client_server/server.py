@@ -1,19 +1,24 @@
-from mcp.server.fastmcp import FastMCP
-from mcp.server.fastmcp.utilities.logging import get_logger
+import datetime
+import os
+import os.path
 from openai import OpenAI
 from dotenv import load_dotenv
-from app.chat.agent.mcp_client_server.sources.event_brite_events import (
+from mcp.server.fastmcp import FastMCP
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from mcp.server.fastmcp.utilities.logging import get_logger
+from agent.mcp_client_server.sources.event_brite_events import (
     EVENT_BRITE_EVENTS,
 )
-from app.chat.agent.mcp_client_server.sources.luma_events import LUMA_EVENTS
+from agent.mcp_client_server.sources.luma_events import LUMA_EVENTS
 
-# from pathlib import Path
-import os
 
 load_dotenv()
 # run using python -m MCP.server
 
-ARXIV_NAMESPACE = "{http://www.w3.org/2005/Atom}"
 LLM = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 logger = get_logger(__name__)
@@ -26,20 +31,74 @@ mcp = FastMCP(
 )
 
 
-@mcp.tool(
-    name="get_calender_by_month",
-    description="Get users calendar by month",
-)
-def get_calender_by_month(month: str) -> str:
-    return f"Calendar for month {month}"
+# @mcp.tool(
+#     name="get_calender_by_month",
+#     description="Get users calendar by month",
+# )
+# def get_calender_by_month(month: str) -> str:
+#     return f"Calendar for month {month}"
 
 
 @mcp.tool(
-    name="get_events_by_month",
-    description="Get the users events by month",
+    name="get_events_in_next_days",
+    description="Get the events in the next days",
 )
-def get_events_by_month(calendar: list[dict]) -> str:
-    return f"Events for month {calendar}"
+def get_events_in_next_days(days: int) -> str:
+    """Shows basic usage of the Google Calendar API.
+    Prints the start and name of the next 10 events on the user's calendar.
+    """
+    creds = None
+    SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
+
+    # The file token.json stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if os.path.exists("./token.json"):
+        creds = Credentials.from_authorized_user_file("./token.json", SCOPES)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                "./credentials.json", SCOPES
+            )
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open("token.json", "w") as token:
+            token.write(creds.to_json())
+
+    try:
+        service = build("calendar", "v3", credentials=creds)
+
+        # Call the Calendar API
+        now = datetime.datetime.now(tz=datetime.timezone.utc).isoformat()
+        print(f"Getting the upcoming {days} events")
+        events_result = (
+            service.events()
+            .list(
+                calendarId="primary",
+                timeMin=now,
+                maxResults=days,
+                singleEvents=True,
+                orderBy="startTime",
+            )
+            .execute()
+        )
+        events = events_result.get("items", [])
+
+        if not events:
+            print("No upcoming events found.")
+            return
+
+        # Prints the start and name of the next 10 events
+        for event in events:
+            start = event["start"].get("dateTime", event["start"].get("date"))
+            print(start, event["summary"])
+
+    except HttpError as error:
+        print(f"An error occurred: {error}")
+    return events
 
 
 @mcp.tool(
@@ -54,7 +113,7 @@ def analyze_events(calendar: list[dict], strict: bool) -> str:
                 "role": "developer",
                 "content": f"""
                         You are an expert work life balancer, You take in a list of events in a calendar and determine if the events are overwhelimingly work. 
-                        You MUST analyzse each event and determine this
+                        You MUST analyzse each event and determine this yourself.
                         After determining the type of event, you must write a proposed solution for the user to take action on.
                         Ex: You have too many work events. Lets balance the work and non work events.
                         If you determine events are balanced enough, you MUST write a response that is positive and encouraging.
@@ -78,7 +137,10 @@ def analyze_events(calendar: list[dict], strict: bool) -> str:
                         event_location: Location
                         event_description: Description
 
+                        Additionaly take note of calendar events that are not work related.
+                        This way we can keep a idea of what user likes to do
                         
+
                         YOU MUST USE THE CALENDAR PROVIDED TO INFORM YOUR RESPONSE
                         
                         Here is the Calendar: {calendar}
