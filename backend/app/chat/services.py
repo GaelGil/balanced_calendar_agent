@@ -1,4 +1,4 @@
-from composio import Composio  # type: ignore
+# from composio import Composio  # type: ignore
 from app.chat.agent.PlannerAgent import PlannerAgent  # type: ignore
 from app.chat.agent.utils.prompts import PLANNER_AGENT_PROMPT
 from app.chat.agent.utils.OpenAIClient import OpenAIClient
@@ -22,7 +22,7 @@ class ChatService:
         self.llm: OpenAI = None
         self.tools = None
         self.model_name: str = "gpt-4.1-mini"
-        self.composio = Composio()
+        # self.composio = Composio()
         self.user_id = "0000-1111-2222"
 
     async def process_message(self, user_message):

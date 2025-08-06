@@ -1,5 +1,5 @@
-from app.chat.agent.schemas import Plan, PlannerTask, ToolCall
-from app.chat.agent.MCP.client import MCPClient
+from app.chat.agent.utils.schemas import Plan, PlannerTask, ToolCall
+from app.chat.agent.mcp_client_server.client import MCPClient
 from flask_socketio import emit
 
 
