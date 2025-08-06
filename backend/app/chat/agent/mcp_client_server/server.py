@@ -2,6 +2,10 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.utilities.logging import get_logger
 from openai import OpenAI
 from dotenv import load_dotenv
+from app.chat.agent.mcp_client_server.sources.event_brite_events import (
+    EVENT_BRITE_EVENTS,
+)
+from app.chat.agent.mcp_client_server.sources.luma_events import LUMA_EVENTS
 
 # from pathlib import Path
 import os
@@ -95,7 +99,13 @@ def analyze_events(calendar: list[dict], strict: bool) -> str:
     description="Search for events on Luma",
 )
 def search_luma_events(month: str) -> str:
-    return f"Luma events in {month}"
+    events = LUMA_EVENTS[month]
+    for i in range(len(events)):
+        print(f"Event {i}: {events[i]}")
+        # check if event is already in calendar
+        # check if event fits in time slot
+        # add to list of events for user to review
+    return f"Eventbrite events in {month}"
 
 
 @mcp.tool(
@@ -103,6 +113,12 @@ def search_luma_events(month: str) -> str:
     description="Search for events on Eventbrite",
 )
 def search_eventbrite_events(month: str) -> str:
+    events = EVENT_BRITE_EVENTS[month]
+    for i in range(len(events)):
+        print(f"Event {i}: {events[i]}")
+        # check if event is already in calendar
+        # check if event fits in time slot
+        # add to list of events for user to review
     return f"Eventbrite events in {month}"
 
 
@@ -118,8 +134,10 @@ def calendar_availability(month: str) -> str:
     name="cretae_new_calendar_event",
     description="Create a new calendar event",
 )
-def create_new_calendar_event(month: str, event: str, event_details: str) -> str:
-    return f"New calendar event in {month}: {event} - {event_details}"
+def create_new_calendar_event(event: dict) -> str:
+    # event = service.events().insert(calendarId="primary", body=event).execute()
+    # print(f"Event Created: {event.get('htmlLink')}")
+    return f"New calendar event in {event}"
 
 
 # Run the server
