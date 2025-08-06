@@ -12,6 +12,12 @@ install:
 run:
 	@echo "Starting application..."
 	.venv/bin/python main.py
+
+
+.PHONY: run
+run:
+	@echo "Starting application..."
+	.venv/bin/python -m app.chat.agent.mcp_client_server.server
 # IF running locally uncomment for database setup
 # 	flask db upgrade
 # 	.venv/bin/python seed.py
