@@ -14,8 +14,8 @@ run:
 	.venv/bin/python main.py
 
 
-.PHONY: run
-run:
+.PHONY: mcp
+mcp:
 	@echo "Starting application..."
 	.venv/bin/python -m app.chat.agent.mcp_client_server.server
 # IF running locally uncomment for database setup
