@@ -1,4 +1,4 @@
-from app.chat.agent.schemas import Plan
+from app.chat.agent.utils.schemas import Plan
 from openai import OpenAI
 
 

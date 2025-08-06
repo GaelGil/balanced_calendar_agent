@@ -2,8 +2,8 @@ from composio import Composio  # type: ignore
 from app.chat.agent.PlannerAgent import PlannerAgent  # type: ignore
 from app.chat.agent.utils.prompts import PLANNER_AGENT_PROMPT
 from app.chat.agent.utils.OpenAIClient import OpenAIClient
-from app.chat.agent.MCP.client import MCPClient
-from app.chat.agent.Executor import Executor
+from app.chat.agent.mcp_client_server.client import MCPClient
+from app.chat.agent.utils.Executor import Executor
 from app.chat.agent.utils.schemas import InitialResponse
 from openai import OpenAI
 from dotenv import load_dotenv
