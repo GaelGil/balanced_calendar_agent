@@ -1,13 +1,6 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from app.user.models import User
 from app.extensions import db, bcrypt
-from flask_jwt_extended import (
-    create_access_token,
-    jwt_required,
-    get_jwt,
-    get_jwt_identity,
-)
-from app.extensions import blacklist
 from sqlalchemy.exc import IntegrityError
 
 users = Blueprint("users", __name__)
@@ -58,7 +51,12 @@ def signup():
     except IntegrityError:
         db.session.rollback()
         return jsonify({"error": "database error"}), 500
-    return jsonify({"msg": "signup succesful"}), 201
+    return jsonify(
+        {
+            "msg": "signup succesful",
+            "user": {"id": new_user.id, "username": new_user.username},
+        }
+    ), 201
 
 
 @users.route("/login", methods=["POST"])
@@ -73,32 +71,41 @@ def login():
     if not user or not bcrypt.check_password_hash(user.password, password):
         return jsonify({"error": "invalid username or password"}), 401
 
-    access_token = create_access_token(identity=str(user.id))
+    session["user_id"] = user.id  # Save user ID in session
+
     return jsonify(
         {
             "message": "Login successful",
-            "access_token": access_token,
             "user": {"id": user.id, "username": user.username},
         }
     ), 200
 
 
 @users.route("/logout", methods=["POST"])
-@jwt_required()
 def logout():
-    jti = get_jwt()["jti"]  # get the token ID
-    blacklist.add(jti)  # mark it as revoked
+    session.clear()
     return jsonify({"msg": "Successfully logged out"}), 200
 
 
 @users.route("/profile/<int:user_id>", methods=["GET"])
-@jwt_required()
-def get_profile(user_id):
-    current_user_id = get_jwt_identity()
-    if user_id != int(current_user_id):  # convert to int for correct comparison
-        return jsonify({"msg": "unauthorized access"}), 403
+def profile(user_id):
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    if session["user_id"] != user_id:
+        return jsonify({"error": "Forbidden"}), 403
 
     user = User.query.get(user_id)
     if not user:
-        return jsonify({"msg": "User not found"}), 404
-    return jsonify({"id": user.id, "username": user.username, "email": user.email}), 200
+        return jsonify({"error": "User not found"}), 404
+
+    return jsonify({"user": user.to_dict()}), 200
+
+
+@users.route("/users/me", methods=["GET"])
+def get_current_user():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"msg": "unauthenticated"}), 401
+    user = User.query.get(user_id)
+    return jsonify({"id": user.id, "username": user.username, "email": user.email})
