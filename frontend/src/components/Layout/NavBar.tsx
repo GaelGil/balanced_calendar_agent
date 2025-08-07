@@ -93,7 +93,7 @@ const Navigation = () => {
                   : "text-gray-700 hover:text-blue-600 no-underline"
               }`}
             >
-              Content
+              Calendar
             </Link>
           )}
 

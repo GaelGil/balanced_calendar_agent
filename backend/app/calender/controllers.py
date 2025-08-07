@@ -1,6 +1,6 @@
 import os
 import datetime
-from flask import Blueprint, session, redirect, request, url_for, jsonify
+from flask import Blueprint, session, redirect, request, url_for, jsonify, current_app
 from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -62,7 +62,8 @@ def oauth2callback():
         return jsonify({"error": "No logged-in user"}), 401
     save_credentials(user_id, creds)
 
-    return redirect("/calendar/success")
+    frontend_url = current_app.config["FRONTEND_URL"]
+    return redirect(f"{frontend_url}/calendar?connected=true")
 
 
 @calendar.route("/calendar/events")
