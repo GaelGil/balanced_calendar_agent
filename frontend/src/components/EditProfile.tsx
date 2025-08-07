@@ -7,11 +7,14 @@ import { useEffect, useState } from "react";
 import type { Profile } from "../types/UserProfileProps";
 import { getUserProfile } from "../api/users";
 import Followers from "./Lists/Followers";
+import { useUser } from "../context/UserContext"; // <-- added
 // import { useNavigate } from "react-router-dom";
 
 const EditProfile = ({ userId }: { userId: string }) => {
+  const { user } = useUser();
   const [profile, setProfile] = useState<Profile>();
   const [loading, setLoading] = useState<boolean>();
+
   //   const [message, setMessage] = useState<string>();
   //   const navigate = useNavigate();
 
@@ -19,14 +22,13 @@ const EditProfile = ({ userId }: { userId: string }) => {
     const fetchProfile = async () => {
       setLoading(true);
       const token = localStorage.getItem("token");
-      console.log("Token from localStorage:", token);
-      if (!token || !userId) {
-        return;
-      }
+      const idToFetch = userId || user?.id;
+
+      if (!token || !idToFetch) return;
+
       try {
-        const user = await getUserProfile(userId, token);
-        console.log("Fetched user:", user);
-        setProfile(user);
+        const fetchedUser = await getUserProfile(idToFetch, token);
+        setProfile(fetchedUser);
       } catch (error) {
         console.error("Error fetching profile:", error);
       } finally {
@@ -34,30 +36,8 @@ const EditProfile = ({ userId }: { userId: string }) => {
       }
     };
 
-    if (userId) {
-      fetchProfile();
-    }
-  }, [userId]);
-
-  //   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  //     e.preventDefault();
-  //     setLoading(true);
-  //     setMessage("logging in");
-  //     console.log(loading);
-  //     try {
-  //       //   const data = await login(username, password);
-  //       //   setMessage(data.msg);
-  //       //   localStorage.setItem("token", data.access_token);
-  //       //   localStorage.setItem("user", JSON.stringify(data.user));
-  //       //   const userId = data.user.id;
-  //       navigate(`/profile/${userId}`);
-  //     } catch (error) {
-  //       console.error("Login Error", error);
-  //       setMessage("Error Logging in");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
+    fetchProfile();
+  }, [userId, user]);
 
   return (
     <>

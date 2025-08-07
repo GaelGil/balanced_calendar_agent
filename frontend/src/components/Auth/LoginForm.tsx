@@ -3,14 +3,16 @@ import { Container } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import AuthForm from "./AuthForm";
 import { login } from "../../api/auth";
+import { useUser } from "../../context/UserContext";
 
 const LogInForm = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState<boolean>(true);
+  const { setUser } = useUser();
   const navigate = useNavigate();
-  // function to handle if algorithm changes
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -32,14 +34,12 @@ const LogInForm = () => {
     e.preventDefault();
     setLoading(true);
     setMessage("logging in");
-    console.log(loading);
     try {
       const data = await login(username, password);
       setMessage(data.msg);
       localStorage.setItem("token", data.access_token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      const userId = data.user.id;
-      navigate(`/profile/${userId}`);
+      setUser(data.user);
+      navigate(`/profile/${data.user.id}`);
     } catch (error) {
       console.error("Login Error", error);
       setMessage("Error Logging in");
@@ -47,10 +47,11 @@ const LogInForm = () => {
       setLoading(false);
     }
   };
+
   return (
     <Container className="d-flex flex-column justify-content-center align-items-center">
       <div>
-        <h1> Log In</h1>
+        <h1>Log In</h1>
         <AuthForm
           isLogin={true}
           username={username}

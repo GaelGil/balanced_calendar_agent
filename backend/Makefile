@@ -15,7 +15,3 @@ run:
 # IF running locally uncomment for database setup
 # 	flask db upgrade
 # 	.venv/bin/python seed.py
-.PHONY: mcp
-mcp:
-	@echo "Starting application..."
-	.venv/bin/python -m app.chat.agent.mcp_client_server.server

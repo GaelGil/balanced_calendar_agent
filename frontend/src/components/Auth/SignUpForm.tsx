@@ -3,6 +3,7 @@ import { Container } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import AuthForm from "./AuthForm";
 import { login, signup } from "../../api/auth";
+import { useUser } from "../../context/UserContext"; // adjust path as needed
 
 const SignUpForm = () => {
   const [username, setUsername] = useState("");
@@ -10,6 +11,8 @@ const SignUpForm = () => {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState<boolean>();
+  const { setUser } = useUser();
+
   const navigate = useNavigate();
   // function to handle if algorithm changes
   const handleChange = (
@@ -43,8 +46,8 @@ const SignUpForm = () => {
       setLoading(true);
       const user = await login(username, password);
       setMessage(user.msg);
-      localStorage.setItem("token", user.access_token);
-      localStorage.setItem("user", JSON.stringify(user.user));
+      localStorage.setItem("token", data.access_token);
+      setUser(data.user);
       const userId = user.user.id;
       setLoading(false);
       navigate(`/profile/${userId}`);

@@ -9,8 +9,10 @@ import { getUserProfile } from "../api/users";
 import { Image } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { getDefaultPhoto } from "../api/helper";
+import { useUser } from "../context/UserContext";
 
-const UserProfile = ({ userId }: { userId: string }) => {
+const UserProfile = ({ userId }: { userId?: string }) => {
+  const { user } = useUser();
   const [profile, setProfile] = useState<User>();
   const [loading, setLoading] = useState<boolean>();
   const navigate = useNavigate();
@@ -19,14 +21,13 @@ const UserProfile = ({ userId }: { userId: string }) => {
     const fetchProfile = async () => {
       setLoading(true);
       const token = localStorage.getItem("token");
-      console.log("Token from localStorage:", token);
-      if (!token || !userId) {
-        return;
-      }
+      const idToFetch = userId || user?.id;
+
+      if (!token || !idToFetch) return;
+
       try {
-        const user = await getUserProfile(userId, token);
-        console.log("Fetched user:", user);
-        setProfile(user);
+        const fetchedUser = await getUserProfile(idToFetch, token);
+        setProfile(fetchedUser);
       } catch (error) {
         console.error("Error fetching profile:", error);
       } finally {
@@ -34,66 +35,62 @@ const UserProfile = ({ userId }: { userId: string }) => {
       }
     };
 
-    if (userId) {
-      fetchProfile();
-    }
-  }, [userId]);
+    fetchProfile();
+  }, [userId, user]);
 
   return (
-    <>
-      <Container className="py-5">
-        <Row className="justify-content-center">
-          <Col xs={12} md={8}>
-            <Card className="border-0 shadow-sm">
-              <Card.Body>
-                {loading ? (
-                  <div className="text-center py-4">
-                    <Spinner animation="border" variant="primary" />
-                    <Card.Title className="mt-3">Loading Profile...</Card.Title>
-                  </div>
-                ) : profile ? (
-                  <Row className="align-items-center">
-                    <Col xs={4} className="text-center">
-                      <Image
-                        src={profile.pfp || getDefaultPhoto()}
-                        roundedCircle
-                        fluid
-                        alt="Profile Avatar"
-                        className="mb-2"
+    <Container className="py-5">
+      <Row className="justify-content-center">
+        <Col xs={12} md={8}>
+          <Card className="border-0 shadow-sm">
+            <Card.Body>
+              {loading ? (
+                <div className="text-center py-4">
+                  <Spinner animation="border" variant="primary" />
+                  <Card.Title className="mt-3">Loading Profile...</Card.Title>
+                </div>
+              ) : profile ? (
+                <Row className="align-items-center">
+                  <Col xs={4} className="text-center">
+                    <Image
+                      src={profile.pfp || getDefaultPhoto()}
+                      roundedCircle
+                      fluid
+                      alt="Profile Avatar"
+                      className="mb-2"
+                      style={{
+                        width: "100px",
+                        height: "100px",
+                        objectFit: "cover",
+                      }}
+                    />
+                  </Col>
+                  <Col xs={8}>
+                    <h4 className="mb-1">@{profile.username}</h4>
+                    <div className="d-flex gap-3 mt-2">
+                      <Card.Subtitle
+                        onClick={() => navigate(`/edit-profile/${profile.id}`)}
                         style={{
-                          width: "100px",
-                          height: "100px",
-                          objectFit: "cover",
+                          cursor: "pointer",
+                          color: "blue",
+                          textDecoration: "underline",
                         }}
-                      />
-                    </Col>
-                    <Col xs={8}>
-                      <h4 className="mb-1">@{profile.username}</h4>
-                      <div className="d-flex gap-3 mt-2">
-                        <Card.Subtitle
-                          onClick={() => navigate(`/edit-profile/${userId}`)}
-                          style={{
-                            cursor: "pointer",
-                            color: "blue",
-                            textDecoration: "underline",
-                          }}
-                        >
-                          Edit Profile
-                        </Card.Subtitle>
-                      </div>
-                    </Col>
-                  </Row>
-                ) : (
-                  <div className="text-center py-4">
-                    <Card.Title>No profile data found</Card.Title>
-                  </div>
-                )}
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
-    </>
+                      >
+                        Edit Profile
+                      </Card.Subtitle>
+                    </div>
+                  </Col>
+                </Row>
+              ) : (
+                <div className="text-center py-4">
+                  <Card.Title>No profile data found</Card.Title>
+                </div>
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

@@ -3,12 +3,15 @@ import { Link, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { PROJECT_NAME } from "../../data/ProjectName";
 import { PROJECT_LOGO } from "../../data/ProjectLogo";
+import { useUser } from "../../context/UserContext";
+
 const Navigation = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const [loading, setLoading] = useState<boolean>();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const { setUser } = useUser();
 
   const handleLogout = async () => {
     localStorage.removeItem("token");
@@ -23,6 +26,7 @@ const Navigation = () => {
       if (res.ok) {
         console.log(res.status);
       }
+      setUser(null);
     } catch (error) {
       alert(`error logging out: ${error}`);
     } finally {
