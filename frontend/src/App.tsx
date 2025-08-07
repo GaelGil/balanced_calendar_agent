@@ -6,8 +6,21 @@ import Home from "./pages/Home";
 import AuthPage from "./pages/Auth";
 import ProfilePage from "./pages/Profile";
 import Content from "./pages/Content";
+import { useEffect } from "react";
+import { getCurrentUser } from "./api/auth";
+import { useUser } from "./context/UserContext";
 
 function App() {
+  const { setUser } = useUser();
+
+  useEffect(() => {
+    getCurrentUser().then((user) => {
+      if (user) {
+        setUser(user);
+      }
+    });
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navigation />

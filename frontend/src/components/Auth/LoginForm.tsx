@@ -33,16 +33,23 @@ const LogInForm = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("logging in");
+    setMessage("Logging in...");
     try {
       const data = await login(username, password);
-      setMessage(data.msg);
-      localStorage.setItem("token", data.access_token);
+
+      if (!data.user) {
+        setMessage("Login failed: user not returned");
+        return;
+      }
       setUser(data.user);
       navigate(`/profile/${data.user.id}`);
     } catch (error) {
       console.error("Login Error", error);
-      setMessage("Error Logging in");
+      if (error instanceof Error) {
+        setMessage(error.message);
+      } else {
+        setMessage("Error Logging in");
+      }
     } finally {
       setLoading(false);
     }

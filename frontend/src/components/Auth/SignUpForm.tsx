@@ -42,15 +42,21 @@ const SignUpForm = () => {
     try {
       const data = await signup(username, email, password);
       setMessage(data.msg);
-      setMessage("logging in");
+      setMessage("Account created");
       setLoading(true);
-      const user = await login(username, password);
-      setMessage(user.msg);
-      localStorage.setItem("token", data.access_token);
-      setUser(data.user);
-      const userId = user.user.id;
-      setLoading(false);
-      navigate(`/profile/${userId}`);
+      try {
+        setMessage("Logging in");
+        const user = await login(username, password);
+        setMessage(user.msg);
+        localStorage.setItem("token", data.access_token);
+        setUser(data.user);
+        const userId = user.user.id;
+        navigate(`/profile/${userId}`);
+      } catch (error) {
+        setMessage("error signing up");
+      } finally {
+        setLoading(false);
+      }
     } catch (error) {
       setMessage("error signing up");
     } finally {

@@ -1,9 +1,9 @@
 import { BASE_URL } from "./url";
 
-export const getUserProfile = async (userId: string, token: string) => {
+export const getUserProfile = async (userId: string) => {
   const res = await fetch(`${BASE_URL}/profile/${userId}`, {
     headers: {
-      Authorization: `Bearer ${token}`,
+      credentials: "include",
     },
   });
   if (!res.ok) {
@@ -24,19 +24,6 @@ export const getUser = async (userId: string, token: string) => {
   }
   const data = await res.json();
   return data;
-};
-
-export const getUserFollowers = async (userId: string, token: string) => {
-  const res = await fetch(`${BASE_URL}/followers/${userId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  if (!res.ok) {
-    return new Error("Error");
-  }
-  const data = await res.json();
-  return data.followers;
 };
 
 export const searchUsers = async (query: string, token: string) => {

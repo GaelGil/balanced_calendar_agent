@@ -4,28 +4,19 @@ import { useNavigate } from "react-router-dom";
 import { PROJECT_NAME } from "../../data/ProjectName";
 import { PROJECT_LOGO } from "../../data/ProjectLogo";
 import { useUser } from "../../context/UserContext";
-
+import { logout } from "../../api/auth";
 const Navigation = () => {
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
   const [loading, setLoading] = useState<boolean>();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-  const { setUser } = useUser();
+  const { user, setUser } = useUser();
 
   const handleLogout = async () => {
     localStorage.removeItem("token");
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:5000/auth/logout", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (res.ok) {
-        console.log(res.status);
-      }
+      await logout();
       setUser(null);
     } catch (error) {
       alert(`error logging out: ${error}`);
@@ -82,7 +73,7 @@ const Navigation = () => {
 
         {/* Desktop nav */}
         <div className="hidden md:flex md:items-center space-x-6 font-semibold text-lg">
-          {!token ? (
+          {!user ? (
             <Link
               to="/login"
               className={`no-underline ${
@@ -95,9 +86,9 @@ const Navigation = () => {
             </Link>
           ) : (
             <Link
-              to="/orders"
+              to="/content"
               className={`no-underline${
-                location.pathname === "/orders"
+                location.pathname === "/content"
                   ? "text-blue-600 no-underline"
                   : "text-gray-700 hover:text-blue-600 no-underline"
               }`}
@@ -106,7 +97,7 @@ const Navigation = () => {
             </Link>
           )}
 
-          {!token ? (
+          {!user ? (
             <Link
               to="/login"
               className={`no-underline ${

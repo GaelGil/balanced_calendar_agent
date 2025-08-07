@@ -1,39 +1,27 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import type { User, UserContextType } from "../types/User";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { getCurrentUser } from "../api/auth";
 
-const UserContext = createContext<UserContextType | undefined>(undefined);
+// user context
+const UserContext = createContext<any>(null);
 
-export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [user, setUser] = useState<User | null>(null);
+export const UserProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState(null); // user and setUser
+  const [loading, setLoading] = useState(true); // for initial load
 
-  // On first load, populate user from localStorage
+  // get current user on initial load
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    getCurrentUser().then((user) => {
+      setUser(user);
+      setLoading(false);
+    });
   }, []);
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
-  };
-
+  // provider
   return (
-    <UserContext.Provider value={{ user, setUser, logout }}>
+    <UserContext.Provider value={{ user, setUser, loading }}>
       {children}
     </UserContext.Provider>
   );
 };
 
-// Custom hook for consuming the context
-export const useUser = () => {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error("useUser must be used within a UserProvider");
-  }
-  return context;
-};
+export const useUser = () => useContext(UserContext);
