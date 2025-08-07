@@ -9,7 +9,7 @@ import Content from "./pages/Content";
 import { useEffect } from "react";
 import { getCurrentUser } from "./api/auth";
 import { useUser } from "./context/UserContext";
-
+import CalendarPage from "./pages/Calendar";
 function App() {
   const { setUser } = useUser();
 
@@ -31,6 +31,7 @@ function App() {
           <Route path="/content" element={<Content />} />
           <Route path="/login" element={<AuthPage />} />
           <Route element={<PrivateRoute />}>
+            <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/profile/:userId" element={<ProfilePage />} />
           </Route>
         </Routes>
