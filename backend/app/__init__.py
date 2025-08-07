@@ -20,6 +20,11 @@ def create_app():
     socketio.init_app(app)
     bcrypt.init_app(app)
     jwt.init_app(app)
+    app.config.update(
+        SESSION_COOKIE_NAME="myapp-session",
+        SESSION_COOKIE_SAMESITE="None",
+        SESSION_COOKIE_SECURE=False,  # True in production with HTTPS
+    )
     CORS(
         app,
         resources={r"/*": {"origins": "http://localhost:5173"}},

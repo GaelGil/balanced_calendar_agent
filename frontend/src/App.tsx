@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import AuthPage from "./pages/Auth";
 import ProfilePage from "./pages/Profile";
 import Content from "./pages/Content";
+import GoogleCalendar from "./pages/Calendar";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/calendar" element={<GoogleCalendar />} />
           <Route path="/content" element={<Content />} />
           <Route path="/login" element={<AuthPage />} />
           <Route element={<PrivateRoute />}>
