@@ -1,6 +1,7 @@
 // in your React component
 import { useEffect, useState } from "react";
 import { fetchCalendarEvents } from "../../api/calendar";
+import Event from "../ListItems/Event";
 const Events = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,13 +26,7 @@ const Events = () => {
       {loading ? (
         <p className="text-center text-gray-600 font-semibold">Loading ...</p>
       ) : (
-        <ul>
-          {events.map((evt) => (
-            <li className="mb-2" key={evt.id}>
-              {evt.start.dateTime || evt.start.date} - {evt.summary}
-            </li>
-          ))}
-        </ul>
+        <Event events={events} />
       )}
     </div>
   );

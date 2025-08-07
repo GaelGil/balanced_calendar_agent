@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { fetchCalendarEvents } from "../api/calendar";
 import { useLocation } from "react-router-dom";
-import Events from "../components/ListItems/Events";
+import Events from "../components/Lists/Events";
 const CalendarPage = () => {
   const [events, setEvents] = useState<any[]>([]);
   const location = useLocation();
