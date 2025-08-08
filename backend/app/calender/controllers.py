@@ -1,4 +1,5 @@
 import os
+import json
 import datetime
 from flask import (
     Blueprint,
@@ -14,9 +15,10 @@ from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
+from app.calender.services import CalenderService
 
 calendar = Blueprint("calendar", __name__)
-
+calender_service = CalenderService()
 SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
 CLIENT_SECRETS_FILE = os.path.join(os.getcwd(), "credentials.json")
 
@@ -137,7 +139,7 @@ def send_message_stream():
         def generate():
             try:
                 # Stream blocks from the agent
-                for event_data in chat_service.process_message_stream(message):
+                for event_data in calender_service.process_message_stream(message):
                     yield f"data: {json.dumps(event_data)}\n\n"
             except Exception as e:
                 error_event = {"type": "error", "error": str(e)}
