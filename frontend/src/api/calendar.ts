@@ -30,3 +30,15 @@ export const createCalenderEvent = async (
   const data = await res.json();
   return data;
 };
+
+export async function calendarConnectionStatus() {
+  const res = await fetch(`${BASE_URL}/calendar/status`, {
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error("Failed to fetch calendar events");
+  }
+  const data = await res.json();
+
+  return await data.connected;
+}

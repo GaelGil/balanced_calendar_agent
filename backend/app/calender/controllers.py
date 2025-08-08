@@ -100,3 +100,16 @@ def list_events():
         .execute()
     )
     return jsonify(events_result.get("items", []))
+
+
+@calendar.route("/calendar/status")
+def calendar_status():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"connected": False}), 401
+
+    creds = load_credentials(user_id)
+    if creds and creds.valid:
+        return jsonify({"connected": True})
+    else:
+        return jsonify({"connected": False})
