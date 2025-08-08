@@ -1,6 +1,5 @@
 // in your React component
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 import Events from "../components/Lists/Events";
 import { PROJECT_NAME } from "../data/ProjectName";
 import { calendarConnectionStatus } from "../api/calendar";
@@ -9,7 +8,6 @@ const CalendarPage = () => {
   // const [events, setEvents] = useState<any[]>([]);
   const [balance, setBalance] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
-  const location = useLocation();
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
   useEffect(() => {
@@ -26,7 +24,6 @@ const CalendarPage = () => {
     getConnectionStastus();
   }, []);
 
-  // TODO: must first be prompted balance the calender, only if connected
   // TODO: on click of balance calendar send a request to balance agent to get a plan and execute
   // TODO: recieve pland and tasks and print them for user to see
   // TODO: Once done load events

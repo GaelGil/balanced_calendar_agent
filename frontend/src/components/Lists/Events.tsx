@@ -22,13 +22,13 @@ const Events = () => {
   }, []);
 
   return (
-    <div className="p-6 border rounded-lg bg-gray-100 shadow space-y-4 max-w-md mx-auto">
+    <>
       {loading ? (
         <p className="text-center text-gray-600 font-semibold">Loading ...</p>
       ) : (
         <Event events={events} />
       )}
-    </div>
+    </>
   );
 };
 export default Events;
