@@ -50,7 +50,7 @@ const CalendarPage = () => {
           {!balance ? (
             <button
               className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition"
-              onClick={() => setBalance(false)}
+              onClick={() => setBalance(true)}
             >
               Balance Calendar
             </button>
