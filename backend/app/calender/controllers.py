@@ -1,6 +1,15 @@
 import os
 import datetime
-from flask import Blueprint, session, redirect, request, url_for, jsonify, current_app
+from flask import (
+    Blueprint,
+    session,
+    redirect,
+    request,
+    url_for,
+    jsonify,
+    current_app,
+    Response,
+)
 from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -113,3 +122,37 @@ def calendar_status():
         return jsonify({"connected": True})
     else:
         return jsonify({"connected": False})
+
+
+@calendar.route("/calendar/stream", methods=["POST"])
+def send_message_stream():
+    """Send a message to the AI agent and get a streaming SSE response."""
+    try:
+        data = request.get_json()
+        message = data.get("message")
+
+        if not message:
+            return jsonify({"error": "Message is required"}), 400
+
+        def generate():
+            try:
+                # Stream blocks from the agent
+                for event_data in chat_service.process_message_stream(message):
+                    yield f"data: {json.dumps(event_data)}\n\n"
+            except Exception as e:
+                error_event = {"type": "error", "error": str(e)}
+                yield f"data: {json.dumps(error_event)}\n\n"
+
+        return Response(
+            generate(),
+            mimetype="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Cache-Control",
+            },
+        )
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to process message: {str(e)}"}), 500
