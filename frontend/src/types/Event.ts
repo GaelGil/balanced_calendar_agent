@@ -5,6 +5,10 @@ export interface Event {
   end: { dateTime?: string; date?: string };
 }
 
+export interface CalendarEventProps {
+  event: Event;
+}
+
 export interface EventProps {
   events: Event[];
 }

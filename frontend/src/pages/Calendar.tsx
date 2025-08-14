@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Events from "../components/Lists/Events";
 import { PROJECT_NAME } from "../data/ProjectName";
 import { calendarConnectionStatus } from "../api/calendar";
-
+import CalendarEvents from "../components/Lists/CalendarEvents";
 const CalendarPage = () => {
   // const [events, setEvents] = useState<any[]>([]);
   const [balance, setBalance] = useState<boolean>(false);
@@ -44,6 +44,7 @@ const CalendarPage = () => {
         </button>
       ) : (
         <>
+          <CalendarEvents />
           {!balance ? (
             <button
               className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition"
