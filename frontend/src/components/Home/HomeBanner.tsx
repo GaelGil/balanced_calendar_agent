@@ -6,7 +6,6 @@ import { useUser } from "../../context/UserContext";
 const HomeBanner = () => {
   const { user } = useUser();
 
-  const token = localStorage.getItem("token");
   return (
     <>
       <div className="min-h-[80vh] flex items-center justify-center bg-gradient-to-r from-[#e3f0ff] to-[#f8fafd]">
