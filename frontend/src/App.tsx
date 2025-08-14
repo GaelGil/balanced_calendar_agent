@@ -5,7 +5,6 @@ import Navigation from "./components/Layout/NavBar";
 import Home from "./pages/Home";
 import AuthPage from "./pages/Auth";
 import ProfilePage from "./pages/Profile";
-import Content from "./pages/Content";
 import { useEffect } from "react";
 import { getCurrentUser } from "./api/auth";
 import { useUser } from "./context/UserContext";
@@ -28,7 +27,6 @@ function App() {
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/content" element={<Content />} />
           <Route path="/login" element={<AuthPage />} />
           <Route element={<PrivateRoute />}>
             <Route path="/calendar" element={<CalendarPage />} />
