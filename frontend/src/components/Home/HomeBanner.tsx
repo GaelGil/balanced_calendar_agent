@@ -1,7 +1,11 @@
 import { Link } from "react-router-dom";
 import { PROJECT_NAME } from "../../data/ProjectName";
 import { PROJECT_LOGO } from "../../data/ProjectLogo";
+import { useUser } from "../../context/UserContext";
+
 const HomeBanner = () => {
+  const { user } = useUser();
+
   const token = localStorage.getItem("token");
   return (
     <>
@@ -20,7 +24,7 @@ const HomeBanner = () => {
                 enim reprehenderit rem necessitatibus eaque omnis deserunt.
               </p>
 
-              {!token ? (
+              {!user ? (
                 <Link
                   to="/login"
                   className={`no-underline ${
@@ -35,9 +39,9 @@ const HomeBanner = () => {
                 </Link>
               ) : (
                 <Link
-                  to="/content"
+                  to="/calendar"
                   className={` no-underline${
-                    location.pathname === "/content"
+                    location.pathname === "/calendar"
                       ? "text-blue-600"
                       : "text-gray-700 hover:text-blue-600"
                   }`}

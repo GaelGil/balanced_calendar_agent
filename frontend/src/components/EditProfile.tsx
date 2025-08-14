@@ -14,9 +14,6 @@ const EditProfile = ({ userId }: { userId: string }) => {
   const [profile, setProfile] = useState<Profile>();
   const [loading, setLoading] = useState<boolean>();
 
-  //   const [message, setMessage] = useState<string>();
-  //   const navigate = useNavigate();
-
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
