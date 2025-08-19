@@ -1,6 +1,5 @@
 // in your React component
 import { useEffect, useState } from "react";
-import Events from "../components/Lists/Events";
 import { PROJECT_NAME } from "../data/ProjectName";
 import { calendarConnectionStatus } from "../api/calendar";
 import CalendarEvents from "../components/Lists/CalendarEvents";
@@ -8,7 +7,6 @@ import ChatInterface from "../components/Chat/ChatInterface";
 
 const CalendarPage = () => {
   // const [events, setEvents] = useState<any[]>([]);
-  const [balance, setBalance] = useState<boolean>(false);
   const [chat, setChat] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -56,23 +54,44 @@ const CalendarPage = () => {
           right-6
           bg-blue-600
           hover:bg-blue-700
-          text-white
-          rounded-full
-          w-14
-          h-14
-          flex
-          items-center
-          justify-center
-          shadow-lg
-          transition
-          duration-200
+    text-white
+    font-semibold
+    p-6
+    shadow-lg
+    hover:scale-105
         "
               onClick={() => setChat(true)}
             >
               Chat
             </button>
           ) : (
-            <ChatInterface />
+            <>
+              <ChatInterface />
+
+              <button
+                className="
+    fixed
+    top-4
+    right-4
+    w-14
+    h-14
+    bg-red-600
+    text-white
+    font-bold
+    rounded-full
+    shadow-lg
+    hover:bg-red-700
+    hover:scale-105
+    transition
+    duration-200
+    z-50
+
+    "
+                onClick={() => setChat(false)}
+              >
+                x
+              </button>
+            </>
           )}
         </>
       )}

@@ -274,16 +274,30 @@ const ChatInterface = () => {
   };
 
   return (
-    <div className="bg-white">
+    <div
+      className="
+      p-6
+
+      rounded-lg
+          bg-white
+          fixed
+          bottom-6
+          right-6
+          text-black
+          items-center
+          shadow-lg
+          transition
+          duration-200"
+    >
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-8 py-6 space-y-6">
           {messages.length === 0 && (
             <div className="text-center py-16">
               <h2 className="text-2xl font-semibold text-gray-900 mb-3">
-                I am your personal AI assistant
+                I am your personal calendar assistant
               </h2>
               <p className="text-gray-600 mb-2 max-w-md mx-auto">
-                Ask Anything
+                Ask anything related to your calendar to get started!
               </p>
             </div>
           )}
@@ -296,7 +310,7 @@ const ChatInterface = () => {
       </div>
 
       <div className="border-t border-gray-100 bg-white">
-        <div className="max-w-4xl mx-auto px-8 py-6">
+        <div className="">
           <ChatInput onSendMessage={sendMessage} disabled={isLoading} />
         </div>
       </div>
