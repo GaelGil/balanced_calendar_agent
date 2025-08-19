@@ -24,16 +24,14 @@ function App() {
     <div className="flex flex-col min-h-screen">
       <Navigation />
 
-      <main className="flex-grow">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<AuthPage />} />
-          <Route element={<PrivateRoute />}>
-            <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/profile/:userId" element={<ProfilePage />} />
-          </Route>
-        </Routes>
-      </main>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<AuthPage />} />
+        <Route element={<PrivateRoute />}>
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/profile/:userId" element={<ProfilePage />} />
+        </Route>
+      </Routes>
 
       <Footer />
     </div>

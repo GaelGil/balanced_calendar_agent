@@ -15,6 +15,7 @@ from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
+from app.auth.decorators import login_required
 # from app.calender.services import CalenderService
 
 calendar = Blueprint("calendar", __name__)
@@ -38,6 +39,7 @@ def load_credentials(user_id) -> Credentials | None:
 
 
 @calendar.route("/calendar/authorize")
+@login_required
 def authorize_calendar():
     """Step 1: redirect user to Google’s consent screen."""
     if not os.path.exists(CLIENT_SECRETS_FILE):
@@ -56,6 +58,7 @@ def authorize_calendar():
 
 
 @calendar.route("/calendar/oauth2callback")
+@login_required
 def oauth2callback():
     """Step 2: handle Google’s redirect back to us with a code."""
     flow = Flow.from_client_secrets_file(
@@ -78,6 +81,7 @@ def oauth2callback():
 
 
 @calendar.route("/calendar/events")
+@login_required
 def list_events():
     """Fetch and return next 30 events, redirect to auth if needed."""
     user_id = session.get("user_id")
@@ -114,6 +118,7 @@ def list_events():
 
 
 @calendar.route("/calendar/status")
+@login_required
 def calendar_status():
     user_id = session.get("user_id")
     if not user_id:

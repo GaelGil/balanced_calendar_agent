@@ -29,7 +29,7 @@ const EventTinder: React.FC<EventProps> = ({ events }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center bg-gray-100">
+    <div className="flex flex-col items-center justify-center">
       <div className="bg-white shadow-lg rounded-2xl p-6 w-80 text-center">
         <h2 className="text-xl font-bold">{currentEvent.summary}</h2>
         <p className="text-gray-500 mt-2">
