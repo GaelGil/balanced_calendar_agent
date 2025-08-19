@@ -1,31 +1,15 @@
 // in your React component
 import { useEffect, useMemo, useState } from "react";
 import { fetchCalendarEvents } from "../../api/calendar";
-
-type GoogleEvent = {
-  id: string;
-  summary?: string;
-  start: { date?: string; dateTime?: string };
-  end?: { date?: string; dateTime?: string };
-  // other fields you might have...
-};
-
-type NormalizedEvent = {
-  id: string;
-  summary: string;
-  dateKey: string; // "YYYY-MM-DD"
-  time?: string; // e.g. "10:30 AM" (for timed events), undefined for all-day
-};
+import type { GoogleEvent, NormalizedEvent } from "../../types/Event";
 
 const year = new Date().getFullYear(); // get current year
 const month = new Date().getMonth(); // get current month
-
 const firstDayOfMonth = new Date(year, month, 1).getDay(); // get first day of month
 const daysInMonth = new Date(year, month + 1, 0).getDate(); // get number of days in month
-
 const days: (number | null)[] = []; // generate calendar cells (null = leading blank)
-for (let i = 0; i < firstDayOfMonth; i++) days.push(null); //
-for (let d = 1; d <= daysInMonth; d++) days.push(d);
+for (let i = 0; i < firstDayOfMonth; i++) days.push(null); // for days not part of current month
+for (let d = 1; d <= daysInMonth; d++) days.push(d); // for days in current month
 
 // helper: format "YYYY-MM-DD"
 const toDateKey = (d: Date) =>
@@ -33,12 +17,14 @@ const toDateKey = (d: Date) =>
     d.getDate()
   ).padStart(2, "0")}`; // parse to YYYY-MM-DD
 
-// helper: produce dateKey from Google event start (handles date vs dateTime)
+// get dateKey from Google event start
 function dateKeyFromGoogleEvent(ev: GoogleEvent): string {
-  // prefer dateTime, fall back to date (all-day)
-  const s = ev.start;
+  const s = ev.start; // event start
+  // if datetime
   if (s.dateTime) {
+    // parse to YYYY-MM-DD
     const dt = new Date(s.dateTime);
+    // return date as YYYY-MM-DD
     return toDateKey(dt);
   }
   if (s.date) {
@@ -64,24 +50,20 @@ export default function CalendarEvents() {
 
   // load events
   useEffect(() => {
-    let cancelled = false;
     async function loadEvents() {
       setLoading(true);
       setError(null);
       try {
         const events = await fetchCalendarEvents(); // must return GoogleEvent[]
-        if (!cancelled) setRawEvents(events ?? []); // set events
+        setRawEvents(events ?? []); // set events
       } catch (err: any) {
         console.error("Failed to load events", err);
-        if (!cancelled) setError(err?.message ?? "Failed to load events");
+        setError(err?.message ?? "Failed to load events");
       } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       }
     }
     loadEvents();
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   // Normalize and group by dateKey. Memoized so re-computation is minimized.
@@ -153,28 +135,36 @@ export default function CalendarEvents() {
       </div>
 
       <div className="grid grid-cols-7 gap-1 mt-1">
+        {/* loop over days in current month */}
         {days.map((day, idx) => {
+          // skip empty days/days not part of current month
           if (!day)
             return (
               <div key={idx} className="py-8 border border-gray-200"></div>
             );
 
-          const dateKey = formatDate(day);
-          const dayEvents = eventsByDate.get(dateKey) ?? [];
+          const dateKey = formatDate(day); // get date key which is YYYY-MM-DD
+          const dayEvents = eventsByDate.get(dateKey) ?? []; // get events for this day
 
           return (
+            // if today, highlight
             <div
               key={idx}
               className={`border border-gray-200 p-2 h-32 flex flex-col ${
-                dateKey === toDateKey(new Date()) ? "bg-yellow-50" : ""
+                dateKey === toDateKey(new Date()) ? "bg-yellow-100" : ""
               }`}
             >
               <div className="font-semibold mb-1">{day}</div>
+
               <div className="flex-1 overflow-y-auto">
                 {dayEvents.length === 0 ? (
+                  // if no events
                   <div className="text-xs text-gray-400">No events</div>
                 ) : (
+                  // if events
+                  // for each event
                   dayEvents.map((ev) => (
+                    // display
                     <div
                       key={ev.id}
                       className="bg-blue-500 text-white text-xs px-1 py-0.5 rounded mb-0.5 truncate"
