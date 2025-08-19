@@ -4,10 +4,12 @@ import Events from "../components/Lists/Events";
 import { PROJECT_NAME } from "../data/ProjectName";
 import { calendarConnectionStatus } from "../api/calendar";
 import CalendarEvents from "../components/Lists/CalendarEvents";
+import ChatInterface from "../components/Chat/ChatInterface";
 
 const CalendarPage = () => {
   // const [events, setEvents] = useState<any[]>([]);
   const [balance, setBalance] = useState<boolean>(false);
+  const [chat, setChat] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
@@ -46,15 +48,31 @@ const CalendarPage = () => {
       ) : (
         <>
           <CalendarEvents />
-          {!balance ? (
+          {!chat ? (
             <button
-              className="bg-blue-600 text-white font-semibold py-6 px-6 rounded-md hover:bg-blue-700 transition"
-              onClick={() => setBalance(true)}
+              className="
+          fixed
+          bottom-6
+          right-6
+          bg-blue-600
+          hover:bg-blue-700
+          text-white
+          rounded-full
+          w-14
+          h-14
+          flex
+          items-center
+          justify-center
+          shadow-lg
+          transition
+          duration-200
+        "
+              onClick={() => setChat(true)}
             >
-              Balance Calendar
+              Chat
             </button>
           ) : (
-            <Events />
+            <ChatInterface />
           )}
         </>
       )}
