@@ -1,5 +1,4 @@
 import os
-import json
 import datetime
 from flask import (
     Blueprint,
@@ -9,7 +8,6 @@ from flask import (
     url_for,
     jsonify,
     current_app,
-    Response,
 )
 from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
