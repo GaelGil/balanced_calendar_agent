@@ -1,4 +1,3 @@
-# app/calendar/services.py
 import os
 import datetime
 from googleapiclient.discovery import build

@@ -1,8 +1,6 @@
-# app/calendar/routes.py
 import os
 from flask import Blueprint, session, redirect, request, url_for, jsonify, current_app
 from google_auth_oauthlib.flow import Flow
-from google.oauth2.credentials import Credentials
 from app.auth.decorators import login_required
 from app.calendar.utils import save_credentials
 from app.calendar.decorators import calendar_service_required

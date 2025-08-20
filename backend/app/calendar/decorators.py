@@ -5,6 +5,8 @@ from app.calendar.utils import load_credentials, save_credentials
 
 
 def calendar_service_required(f):
+    """Decorator to require valid CalendarService."""
+
     @wraps(f)
     def decorated(*args, **kwargs):
         # get user ID
