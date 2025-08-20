@@ -272,6 +272,10 @@ const ChatInterface = () => {
       // event handler mapping (mimics your fetchEventSource handlers)
       const onParsed = (parsed: any) => {
         if (!parsed || typeof parsed !== "object") return;
+        console.log("SSE chunk:", parsed);
+        console.log("SSE chunk type", parsed.type);
+        console.log("SSE chunk text", parsed.text);
+
         switch (parsed.type) {
           case "init_response":
             upsertTextBlock(parsed.text ?? "", false);
