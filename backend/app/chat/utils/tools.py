@@ -4,10 +4,11 @@ from dotenv import load_dotenv
 import os
 import logging
 import datetime
-from google_auth_oauthlib.flow import Flow
-from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from google.auth.transport.requests import Request
+
+EVENT_BRITE_EVENTS = {}
+LUMA_EVENTS = {}
+
 
 # logging stuff
 logging.basicConfig(

@@ -2,59 +2,47 @@ from flask import Blueprint, jsonify, request, Response  # type: ignore
 from app.chat.services import ChatService  # type: ignore
 from app.auth.decorators import login_required
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 chat = Blueprint("chat", __name__)
 chat_service = ChatService()
 
 
-@chat.route("/message", methods=["POST"])
-@login_required
-def send_message():
-    """Send a message to the AI agent and get a streaming response."""
+def generate(message: str):
+    print(f"process_message called with message: {message}")
     try:
-        data = request.get_json()
-        message = data.get("message")
-
-        if not message:
-            return jsonify({"error": "Message is required"}), 400
-
-        # Get response from agent
-        response_data = chat_service.process_message(message)
-
-        return jsonify(response_data), 200
-
+        for chunk in chat_service.process_message_stream(message):
+            if isinstance(chunk, str):
+                yield f"data: {chunk}\n\n"
     except Exception as e:
-        return jsonify({"error": f"Failed to process message: {str(e)}"}), 500
+        yield f"data: {json.dumps({'type': 'error', 'text': str(e)})}\n\n"
 
 
 @chat.route("/message/stream", methods=["POST"])
 @login_required
 def send_message_stream():
     """Send a message to the AI agent and get a streaming SSE response."""
+    print("send_message_stream called")
     try:
         data = request.get_json()
         message = data.get("message")
+        print(data)
+        print(message)
 
         if not message:
             return jsonify({"error": "Message is required"}), 400
 
-        def generate():
-            try:
-                # Stream blocks from the agent
-                for event_data in chat_service.process_message_stream(message):
-                    yield f"data: {json.dumps(event_data)}\n\n"
-            except Exception as e:
-                error_event = {"type": "error", "error": str(e)}
-                yield f"data: {json.dumps(error_event)}\n\n"
-
         return Response(
-            generate(),
+            generate(message=message),
             mimetype="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive",
-                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Origin": "http://localhost:5173",
                 "Access-Control-Allow-Headers": "Cache-Control",
+                "Access-Control-Allow-Credentials": "true",
             },
         )
 

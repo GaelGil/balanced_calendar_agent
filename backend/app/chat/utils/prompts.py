@@ -1,1 +1,1 @@
-AGENT_PROMPT = ""
+AGENT_PROMPT = "You are a helpful AI Assistant. "
