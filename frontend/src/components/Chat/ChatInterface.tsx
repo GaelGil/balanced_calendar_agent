@@ -252,7 +252,6 @@ const ChatInterface = () => {
         headers: {
           "Content-Type": "application/json", // tell server it's JSON
           Accept: "text/event-stream", // optional but descriptive
-          "Cache-Control": "no-cache", // recommended for streaming
         },
         body: JSON.stringify({
           message: message,

@@ -24,19 +24,9 @@ class ChatService:
         self.tools = tool_definitions
         self.composio = Composio()
         self.user_id = "0000-1111-2222"
-        self.llm: OpenAI
-
-    def init_chat_services(self):
-        """
-        Initialize the chat services
-        Args:
-            None
-        Returns:
-            None
-        """
-        print("Initializing OpenAI client ...")
-        self.llm = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        self.add_chat_history(role="developer", message=AGENT_PROMPT)
+        self.llm: OpenAI = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        if not self.chat_history:
+            self.add_chat_history(role="developer", message=AGENT_PROMPT)
 
     def add_chat_history(self, role: str, message: str):
         """Adds a message to the chat history
