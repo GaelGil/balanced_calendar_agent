@@ -1,5 +1,5 @@
 from app.user.controllers import users
-from app.calender.controllers import calendar
+from app.calendar.controllers import calendar
 from app.chat.controllers import chat
 
 

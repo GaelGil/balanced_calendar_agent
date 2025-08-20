@@ -1,0 +1,21 @@
+from functools import wraps
+from flask import session, redirect, url_for
+from app.calendar.services import CalendarService
+from app.calendar.utils import load_credentials, save_credentials
+
+
+def calendar_service_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        user_id = session.get("user_id")
+        if not user_id:
+            return redirect(url_for("auth.login"))
+        service = CalendarService(user_id, load_credentials, save_credentials)
+        try:
+            # validate credentials
+            service.get_service()
+        except ValueError:
+            return redirect(url_for("calendar.authorize_calendar"))
+        return f(service, *args, **kwargs)
+
+    return decorated
