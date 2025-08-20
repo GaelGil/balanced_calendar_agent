@@ -6,17 +6,13 @@ import logging
 import datetime
 from googleapiclient.discovery import build
 
-EVENT_BRITE_EVENTS = {}
-LUMA_EVENTS = {}
-
-
-# logging stuff
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+)  # logging stuff
 logger = logging.getLogger(__name__)
-# load env
-load_dotenv(Path("../../.env"))
+load_dotenv(Path("../../.env"))  # load env
+EVENT_BRITE_EVENTS = {}
+LUMA_EVENTS = {}
 llm = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
