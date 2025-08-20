@@ -3,9 +3,9 @@ import { useState, useRef, useEffect } from "react";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import { BASE_URL } from "../../api/url";
-import type { Message, ChatBlock } from "../../types/Chat";
+import type { Message, ChatBlock, ChatInterfaceProps } from "../../types/Chat";
 
-const ChatInterface = () => {
+const ChatInterface = ({ className = "" }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -338,19 +338,10 @@ const ChatInterface = () => {
 
   return (
     <div
-      className="
-      p-6
-
-      rounded-lg
-          bg-white
-          fixed
-          bottom-6
-          right-6
-          text-black
-          items-center
-          shadow-lg
-          transition
-          duration-200"
+      className={`
+        p-6 rounded-lg bg-white fixed bottom-6 right-6 text-black items-center shadow-lg transition duration-200
+        ${className}
+      `}
     >
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-8 py-6 space-y-6">

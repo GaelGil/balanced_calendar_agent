@@ -34,3 +34,7 @@ export interface ToolBlockProps {
   toolInput?: any;
   toolResult?: any;
 }
+
+export interface ChatInterfaceProps {
+  className?: string;
+}
