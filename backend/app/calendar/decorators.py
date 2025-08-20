@@ -7,9 +7,12 @@ from app.calendar.utils import load_credentials, save_credentials
 def calendar_service_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
+        # get user ID
         user_id = session.get("user_id")
+        # if no user ID, return error
         if not user_id:
             return redirect(url_for("auth.login"))
+        # create CalendarService
         service = CalendarService(user_id, load_credentials, save_credentials)
         try:
             # validate credentials
