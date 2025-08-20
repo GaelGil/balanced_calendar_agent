@@ -46,5 +46,9 @@ class CalendarService:
         )
         return events_result.get("items", [])
 
+    def create_event(self, event):
+        service = self.get_service()
+        return service.events().insert(calendarId="primary", body=event).execute()
+
     def status(self):
         return self.creds is not None and self.creds.valid

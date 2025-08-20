@@ -7,6 +7,12 @@ from composio import Composio
 import os
 import logging
 import json
+import traceback
+from app.chat.utils.tools import (
+    get_events_in_month,
+    calendar_availability,
+    analyze_events,
+)
 
 # logging stuff
 logging.basicConfig(
@@ -222,3 +228,42 @@ class ChatService:
                 elif ev.type == "response.output_text.done":
                     print()
         pass
+
+    def execute_tool(self, tool_name: str, tool_args: dict):
+        """Execute a tool
+
+        Args:
+            tool_name (str): The name of the tool to execute
+            tool_args (dict): The arguments to pass to the tool
+
+        Returns:
+            Any: The result of the tool
+
+        """
+        logger.info(f"Executing tool: {tool_name} with args: {tool_args}")
+        logger.info(
+            f"Tool Name Type {type(tool_name)}, Tool Args Type {type(tool_args)}"
+        )
+        if tool_name == "analyze_events":
+            return analyze_events()
+        elif tool_name == "calendar_availability":
+            return calendar_availability()
+        elif tool_name == "get_events_in_month":
+            return get_events_in_month()
+        try:
+            composio = Composio()
+            result = composio.tools.execute(
+                slug=tool_name,
+                user_id=self.user_id,
+                arguments=tool_args,
+            )
+            logger.info(f"Raw Composio result: {result}")
+            logger.info(f"Composio result type: {type(result)}")
+            return result
+        except Exception as e:
+            error_msg = f"Tool execution failed: {str(e)}"
+            logger.info("!!! TOOL EXECUTION EXCEPTION !!!")
+            logger.info(f"Error type: {type(e).__name__}")
+            logger.info(f"Error message: {str(e)}")
+            logger.info(f"Traceback: {traceback.format_exc()}")
+            return {"error": error_msg}
