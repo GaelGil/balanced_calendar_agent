@@ -3,13 +3,13 @@ import { useState, useRef, useEffect } from "react";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import { BASE_URL } from "../../api/url";
-import { fetchEventSource } from "@microsoft/fetch-event-source";
 import type { Message, ChatBlock } from "../../types/Chat";
 
 const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const currentStreamAbortRef = useRef<AbortController | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -19,6 +19,68 @@ const ChatInterface = () => {
     scrollToBottom();
   }, [messages]);
 
+  const parseSSEEvent = (rawEvent: string) => {
+    // rawEvent is the block between two \n\n splits. Example:
+    // "data: {...}\n"
+    // or multiple data: lines
+    const lines = rawEvent.split(/\r?\n/);
+    const dataLines: string[] = [];
+    for (const line of lines) {
+      if (line.startsWith("data:")) {
+        dataLines.push(line.slice(5).trim());
+      } else if (line.startsWith(":")) {
+        // comment/heartbeat — ignore
+      } else if (line.trim() === "") {
+        // skip blanks
+      } else {
+        // other fields like event: or id:, ignore for now
+      }
+    }
+    if (dataLines.length === 0) return null;
+    const data = dataLines.join("\n");
+    try {
+      return JSON.parse(data);
+    } catch (err) {
+      // not JSON — return raw string
+      return { type: "raw", text: data };
+    }
+  };
+
+  const readStreamAndHandleSSE = async (
+    reader: ReadableStreamDefaultReader<Uint8Array>,
+    onParsed: (ev: any) => void,
+    signal: AbortSignal
+  ) => {
+    const decoder = new TextDecoder();
+    let buf = "";
+
+    while (true) {
+      if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+      const res = await reader.read();
+      if (res.done) break;
+      buf += decoder.decode(res.value, { stream: true });
+
+      // split into events by double newline (\n\n or \r\n\r\n)
+      let idx;
+      while (
+        (idx = buf.indexOf("\n\n")) !== -1 ||
+        (idx = buf.indexOf("\r\n\r\n")) !== -1
+      ) {
+        const raw = buf.slice(0, idx);
+        buf = buf.slice(idx + (buf[idx + 1] === "\r" ? 4 : 2)); // advance past \r\n\r\n or \n\n
+        if (raw.trim().length === 0) continue;
+        const parsed = parseSSEEvent(raw);
+        if (parsed !== null) onParsed(parsed);
+      }
+      // continue reading more chunks
+    }
+
+    // handle any leftover buffer (final event)
+    if (buf.trim().length > 0) {
+      const parsed = parseSSEEvent(buf);
+      if (parsed !== null) onParsed(parsed);
+    }
+  };
   // Append or upsert a streaming text block (uses type init_response while streaming;
   // when isFinal=true we either convert that block to final_response or insert final_response)
   const upsertTextBlock = (text: string, isFinal = false) => {
@@ -52,8 +114,8 @@ const ChatInterface = () => {
 
       if (streamingIdx >= 0) {
         // update existing text block
-        const existing = { ...blocks[streamingIdx] } as ChatBlock;
-        existing.content = (existing.content || "") + text;
+        const existing = { ...blocks[streamingIdx] } as ChatBlock; // make a copy of last text block
+        existing.content = (existing.content || "") + text; // append text
         // if final, mark as final_response
         existing.type = isFinal ? "final_response" : "init_response";
         blocks[streamingIdx] = existing;
@@ -155,10 +217,9 @@ const ChatInterface = () => {
 
   // --- sendMessage with SSE ---
   const sendMessage = async (message: string) => {
-    // check for empty message and if empty message return
     if (!message.trim() || isLoading) return;
 
-    // create user message
+    // create user + assistant messages (same as you had)
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -166,7 +227,6 @@ const ChatInterface = () => {
       timestamp: new Date(),
     };
 
-    // create assistant message
     const assistantMessage: Message = {
       id: (Date.now() + 1).toString(),
       role: "assistant",
@@ -176,100 +236,100 @@ const ChatInterface = () => {
       response: { blocks: [] },
     };
 
-    // user and assistant messages are appended to the end of all previous messages
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
-    // set loading to true
     setIsLoading(true);
 
-    // accumulated text chunks come from SSE events; we append to the latest text block
+    // abort previous stream if any
+    currentStreamAbortRef.current?.abort();
+    const ac = new AbortController();
+    currentStreamAbortRef.current = ac;
+
     try {
-      await fetchEventSource(
-        `${BASE_URL}/api/chat/message?message=${encodeURIComponent(message)}`,
-        {
-          method: "GET",
-          credentials: "include",
-          // open event is called when the SSE connection is established
-          onopen: async (res) => {
-            // if the response is not ok or status is not 200, throw an error
-            if (!(res.ok && res.status === 200)) {
-              const text = await res.text();
-              throw new Error(`SSE failed with status ${res.status}: ${text}`);
-            }
-          },
-          // when we recive a message event from the server
-          onmessage(ev) {
-            try {
-              // try to parse the event data
-              const parsed = JSON.parse(ev.data);
-              // if the parsed data is not an object, return
-              if (!parsed || typeof parsed !== "object") return;
-              // switch on the type of the parsed data
-              console.log(parsed);
-              console.log(parsed.type);
-              console.log();
-              switch (parsed.type) {
-                case "init_response": // if it's an init_response
-                  // append to the latest text block
-                  upsertTextBlock(parsed.text ?? "", false);
-                  break;
-                case "final_response": // if it's a final_response
-                  // final chunk: append then mark final
-                  upsertTextBlock(parsed.text ?? "", true);
-                  break;
-                case "tool_use": // if it's a tool_use
-                  appendToolBlock({
-                    type: "tool_use",
-                    tool_name: parsed.tool_name,
-                    tool_input: parsed.tool_input,
-                  });
-                  break;
-                case "tool_result": // if it's a tool_result
-                  appendToolBlock({
-                    type: "tool_result",
-                    tool_name: parsed.tool_name,
-                    tool_input: parsed.tool_input,
-                    tool_result: parsed.tool_result,
-                  });
-                  break;
-                default: // if it's anything else log a warning of an unknown type
-                  console.warn("Unknown SSE chunk type:", parsed.type);
-              }
-            } catch (err) {
-              // if there's an error
-              console.error("Invalid SSE chunk:", ev.data, err);
-            }
-          },
-          onerror(err) {
-            console.error("SSE error", err);
-            // update the messages to display the error
-            setMessages((prev) => {
-              if (prev.length === 0) return prev;
-              const newMessages = [...prev];
-              const lastIndex = newMessages.length - 1;
-              const last = { ...newMessages[lastIndex] };
-              last.isLoading = false;
-              last.content =
-                (last.content || "") + `\n\n[Error receiving stream]`;
-              last.timestamp = new Date();
-              newMessages[lastIndex] = last;
-              return newMessages;
+      const streamUrl = `${BASE_URL}/api/chat/message/stream?t=${Date.now()}`;
+      const res = await fetch(streamUrl, {
+        method: "POST",
+        credentials: "include", // include cookies if your auth relies on them
+        headers: {
+          "Content-Type": "application/json", // tell server it's JSON
+          Accept: "text/event-stream", // optional but descriptive
+          "Cache-Control": "no-cache", // recommended for streaming
+        },
+        body: JSON.stringify({
+          message: message,
+        }),
+        signal: ac.signal, // allows aborting the request
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Stream failed: ${res.status} ${text}`);
+      }
+
+      const reader = res.body?.getReader();
+      if (!reader) {
+        throw new Error("Readable stream not supported by this response");
+      }
+
+      // event handler mapping (mimics your fetchEventSource handlers)
+      const onParsed = (parsed: any) => {
+        if (!parsed || typeof parsed !== "object") return;
+        switch (parsed.type) {
+          case "init_response":
+            upsertTextBlock(parsed.text ?? "", false);
+            break;
+          case "final_response":
+            upsertTextBlock(parsed.text ?? "", true);
+            break;
+          case "tool_use":
+            appendToolBlock({
+              type: "tool_use",
+              tool_name: parsed.tool_name,
+              tool_input: parsed.tool_input,
             });
-            setIsLoading(false);
-            throw err;
-          },
-          onclose() {
-            // if the connection is closed
-            // make sure any streaming text is finalized
-            finalizeTextBlocks();
-            setIsLoading(false);
-            // small delay and scroll to bottom
-            setTimeout(scrollToBottom, 10);
-          },
+            break;
+          case "tool_result":
+            appendToolBlock({
+              type: "tool_result",
+              tool_name: parsed.tool_name,
+              tool_input: parsed.tool_input,
+              tool_result: parsed.tool_result,
+            });
+            break;
+          default:
+            console.warn("Unknown SSE chunk type:", parsed.type, parsed);
         }
-      );
-    } catch (err) {
-      console.error("Streaming failed", err);
+      };
+
+      // read & parse the stream
+      await readStreamAndHandleSSE(reader, onParsed, ac.signal);
+
+      // stream finished normally
+      finalizeTextBlocks();
       setIsLoading(false);
+      setTimeout(scrollToBottom, 10);
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        console.log("Stream aborted by user");
+      } else {
+        console.error("Streaming failed", err);
+        // mark last message with error
+        setMessages((prev) => {
+          if (prev.length === 0) return prev;
+          const newMessages = [...prev];
+          const lastIndex = newMessages.length - 1;
+          const last = { ...newMessages[lastIndex] };
+          last.isLoading = false;
+          last.content = (last.content || "") + `\n\n[Error receiving stream]`;
+          last.timestamp = new Date();
+          newMessages[lastIndex] = last;
+          return newMessages;
+        });
+        setIsLoading(false);
+      }
+    } finally {
+      // cleanup abort controller
+      if (currentStreamAbortRef.current === ac)
+        currentStreamAbortRef.current = null;
     }
   };
 
