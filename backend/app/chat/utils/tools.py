@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import os
 import logging
 from app.chat.utils.prompts import ANALYSE_EVENTS_PROMPT
+from app.chat.utils.schemas import EventsAnalyzed
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -15,14 +16,14 @@ LUMA_EVENTS = {}
 llm = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-def analyze_events(calendar: list[dict]) -> str:
+def analyze_events(calendar: list[dict]) -> EventsAnalyzed:
     """Analyzes the events in the calendar and returns a summary of the events.
 
     Args:
         calendar (list[dict]): A list of events in the calendar.
 
     Returns:
-        str: A summary of the events in the calendar.
+        EventsAnalyzed: A analysis of the events in the calendar.
     """
     # Create the input for the model
     messages = [
@@ -42,27 +43,8 @@ def analyze_events(calendar: list[dict]) -> str:
     response = llm.responses.parse(
         model="gpt-4.1-mini",
         input=messages,
+        text_format=EventsAnalyzed,
     )
 
     # Return the response
-    return response
-
-
-def search_luma_events(month: str) -> str:
-    events = LUMA_EVENTS[month]
-    for i in range(len(events)):
-        print(f"Event {i}: {events[i]}")
-        # check if event is already in calendar
-        # check if event fits in time slot
-        # add to list of events for user to review
-    return f"Eventbrite events in {month}"
-
-
-def search_eventbrite_events(month: str) -> str:
-    events = EVENT_BRITE_EVENTS[month]
-    for i in range(len(events)):
-        print(f"Event {i}: {events[i]}")
-        # check if event is already in calendar
-        # check if event fits in time slot
-        # add to list of events for user to review
-    return f"Eventbrite events in {month}"
+    return response.output_parsed

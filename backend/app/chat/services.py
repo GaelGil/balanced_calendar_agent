@@ -9,7 +9,6 @@ import logging
 import json
 import traceback
 from app.chat.utils.tools import (
-    calendar_availability,
     analyze_events,
 )
 
@@ -247,9 +246,20 @@ class ChatService:
         )
         try:
             if tool_name == "analyze_events":
-                result = analyze_events()
+                # check if we have calendar events,
+                # if not we cant run analyse_events
+                if "get_events_in_month" in self.tool_history:
+                    result = analyze_events(
+                        self.tool_history["get_events_in_month"]["result"]
+                    )
+                elif (
+                    tool_name != "get_events_in_month"
+                    and "get_events_in_month" not in self.tool_history
+                ):
+                    result = "Run get_events_in_month first"
+
             elif tool_name == "calendar_availability":
-                result = calendar_availability()
+                result = self.calendar_service.calendar_availability()
             elif tool_name == "get_events_in_month":
                 result = self.calendar_service.get_events_in_month()
             else:
