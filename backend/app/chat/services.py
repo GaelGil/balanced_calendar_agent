@@ -1,5 +1,7 @@
 from app.chat.utils.tool_definitions import tool_definitions
 from app.chat.utils.prompts import AGENT_PROMPT
+from app.chat.utils.tools import analyze_events
+from app.chat.utils.formaters import parse_composio_event_search_results
 from openai import OpenAI
 from pathlib import Path
 from dotenv import load_dotenv
@@ -8,9 +10,6 @@ import os
 import logging
 import json
 import traceback
-from app.chat.utils.tools import (
-    analyze_events,
-)
 
 # logging stuff
 logging.basicConfig(
@@ -180,8 +179,7 @@ class ChatService:
                 result = self.execute_tool(tool_name, parsed_args.get("location"))
 
             logger.info(f"[DEBUG] Tool result for idx={tool_idx}: {result}")
-            parsed_result = self.parse_result(tool_name, result)
-            logger.info(f"[DEBUG] Tool result for idx={tool_idx}: {parsed_result}")
+            logger.info(f"[DEBUG] Tool result for idx={tool_idx}: {result}")
 
             # yield the tool result
             yield json.dumps(
@@ -189,16 +187,16 @@ class ChatService:
                     "type": "tool_result",
                     "tool_name": tool_name,
                     "tool_input": parsed_args,
-                    "tool_result": parsed_result,
+                    "tool_result": result,
                 }
             )
-            logger.info(f"[DEBUG] Tool result for idx={tool_idx}: {parsed_result}")
+            logger.info(f"[DEBUG] Tool result for idx={tool_idx}: {result}")
 
             # Add the tool call result to the chat history
             self.chat_history.append(
                 {
                     "role": "assistant",
-                    "content": f"TOOL_NAME: {tool_name}, RESULT: {parsed_result}",
+                    "content": f"TOOL_NAME: {tool_name}, RESULT: {result}",
                 }
             )
 
@@ -228,6 +226,31 @@ class ChatService:
                 elif ev.type == "response.output_text.done":
                     print()
         pass
+
+    def parse_tool_result(self, tool_name: str, tool_result: dict):
+        """Parse the tool result
+
+        Args:
+            tool_name (str): The name of the tool
+            tool_result (str): The result of the tool
+
+        Returns:
+            Any: The parsed result
+
+        """
+        if tool_name == "analyze_events":
+            parsed_result = tool_result.model_dump()
+            logger.info("Parsing analyze events result")
+        elif tool_name == "get_events_in_month":
+            parsed_result = tool_result.model_dump()
+            logger.info("Parsing get events in month result")
+        elif tool_name == "calender_availability":
+            parsed_result = tool_result.model_dump()
+            logger.info("Parsing calender availability result")
+        elif "event" in tool_name.lower():
+            parsed_result = parse_composio_event_search_results(tool_result)
+            logger.info("Used event search parser")
+        return parsed_result
 
     def execute_tool(self, tool_name: str, tool_args: dict):
         """Execute a tool
