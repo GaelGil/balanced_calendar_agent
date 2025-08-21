@@ -1,7 +1,11 @@
 from app.chat.utils.tool_definitions import tool_definitions
 from app.chat.utils.prompts import AGENT_PROMPT
 from app.chat.utils.tools import analyze_events
-from app.chat.utils.formaters import parse_composio_event_search_results
+from app.chat.utils.formaters import (
+    parse_composio_event_search_results,
+    format_free_slots_to_markdown,
+    format_events_to_markdown,
+)
 from openai import OpenAI
 from pathlib import Path
 from dotenv import load_dotenv
@@ -241,10 +245,10 @@ class ChatService:
             parsed_result = tool_result.model_dump()
             logger.info("Parsing analyze events result")
         elif tool_name == "get_events_in_month":
-            parsed_result = tool_result.model_dump()
+            parsed_result = format_events_to_markdown(tool_result)
             logger.info("Parsing get events in month result")
         elif tool_name == "calender_availability":
-            parsed_result = tool_result.model_dump()
+            parsed_result = format_free_slots_to_markdown(tool_result)
             logger.info("Parsing calender availability result")
         elif "event" in tool_name.lower():
             parsed_result = parse_composio_event_search_results(tool_result)
@@ -278,10 +282,16 @@ class ChatService:
                 else:
                     result = "Run get_events_in_month first"
 
-            elif tool_name == "calendar_availability":
-                result = self.calendar_service.calendar_availability()
+            # elif tool_name == "calendar_availability":
+            #     result = self.calendar_service.calendar_availability()
             elif tool_name == "get_events_in_month":
                 result = self.calendar_service.get_events_in_month()
+                # if "get_events_in_month" in self.tool_history:
+                #     result = analyze_events(
+                #         self.tool_history["get_events_in_month"]["result"]
+                #     )
+                # else:
+                #     result = "Run get_events_in_month first"
             else:
                 composio = Composio()
                 result = composio.tools.execute(

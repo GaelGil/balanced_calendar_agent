@@ -30,7 +30,7 @@ class CalendarService:
                 raise ValueError("Credentials not valid, user must re-auth")
         return build("calendar", "v3", credentials=self.creds)
 
-    def list_events(self, max_results=30):
+    def get_events_in_month(self, max_results=30):
         service = self.get_service()
         now = datetime.datetime.now(datetime.timezone.utc)
         events_result = (
@@ -50,7 +50,7 @@ class CalendarService:
         service = self.get_service()
         return service.events().insert(calendarId="primary", body=event).execute()
 
-    def find_availability(self, start_time, end_time):
+    def find_availability(self, start_time, end_time) -> list:
         """
         Return busy events between start_time and end_time.
         """
@@ -68,7 +68,7 @@ class CalendarService:
         )
         return events_result.get("items", [])
 
-    def find_free_slots(self, start_time, end_time):
+    def find_free_slots(self, start_time, end_time) -> list:
         """
         Return free time slots between start_time and end_time.
         """
