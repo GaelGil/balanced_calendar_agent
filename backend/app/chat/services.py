@@ -58,8 +58,6 @@ class ChatService:
             None
 
         """
-        print("HELLLOOOO")
-        print(f"LLM: {self.llm}")
         # add user message to chat history
         self.add_chat_history(role="user", message=message)
         # log the message
