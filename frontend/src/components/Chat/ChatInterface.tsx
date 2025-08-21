@@ -343,7 +343,7 @@ const ChatInterface = ({ className = "" }: ChatInterfaceProps) => {
         ${className}
       `}
     >
-      <div className="flex-1 overflow-y-auto">
+      <div className="lex-1 overflow-y-auto h-96">
         <div className="max-w-4xl mx-auto px-8 py-6 space-y-6">
           {messages.length === 0 && (
             <div className="text-center py-16">

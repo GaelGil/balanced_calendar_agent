@@ -43,12 +43,12 @@ const ToolBlock = ({
         )}
 
         {type === "tool_result" && (
-          <div className="text-sm text-blue-800">
+          <div className="text-sm text-green-800">
             <p className="font-medium mb-1">Tool {toolName} returned:</p>
             {isExpanded && toolInput && (
               <div className="mb-2">
-                <p className="text-xs text-blue-600 mb-1">Input:</p>
-                <div className="bg-white rounded border p-2 text-blue-700 font-mono text-xs">
+                <p className="text-xs text-green-600 mb-1">Input:</p>
+                <div className="bg-white rounded border p-2 text-green-700 font-mono text-xs">
                   {JSON.stringify(toolInput, null, 2)}
                 </div>
                 <div className="bg-white rounded border p-2 text-green-800 font-mono text-xs">
