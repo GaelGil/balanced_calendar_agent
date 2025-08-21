@@ -31,3 +31,7 @@ def parse_composio_event_search_results(composio_result: dict) -> dict:
     except Exception as e:
         print(traceback.format_exc())
         return {"error": f"Failed to parse COMPOSIO news search results: {str(e)}"}
+
+
+def parse_google_calendar_events():
+    pass
