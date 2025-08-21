@@ -66,7 +66,7 @@ def oauth2callback():
 @login_required
 @calendar_service_required
 def list_events(service: CalendarService):
-    events = service.list_events()
+    events = service.get_events_in_month()
     return jsonify(events)
 
 

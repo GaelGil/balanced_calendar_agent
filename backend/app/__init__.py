@@ -22,6 +22,9 @@ def create_app():
 
     with app.app_context():
         from app.user import models as user_models
+        from app.chat import models as chat_models
+
+        db.create_all()
 
     register_routes(app)
     return app

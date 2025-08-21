@@ -1,5 +1,8 @@
 from app.chat.utils.tool_definitions import tool_definitions
 from app.chat.utils.prompts import AGENT_PROMPT
+from app.extensions import db
+from app.calendar.services import CalendarService
+from app.chat.models import ChatSession, ChatMessage
 from app.chat.utils.tools import analyze_events
 from app.chat.utils.formaters import (
     parse_composio_event_search_results,
@@ -25,28 +28,53 @@ load_dotenv(Path("../../.env"))
 
 
 class ChatService:
-    def __init__(self, calendar_service):
+    def __init__(
+        self, app, user_id, calendar_service: CalendarService, session_id=None
+    ):
         self.calendar_service = calendar_service
-        self.chat_history: list[dict] = []
-        self.model_name: str = "gpt-4.1-mini"
+        self.app = app
+        self.user_id = user_id
+        self.session_id = session_id
+        self.chat_session = None
+        self.model_name = "gpt-4.1-mini"
         self.tools = tool_definitions
         self.composio = Composio()
-        self.user_id = "0000-1111-2222"
         self.llm: OpenAI = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        self.tool_history = {}
+
+        with self.app.app_context():
+            # Load existing chat session if session_id is provided
+            if self.session_id:
+                self.chat_session = ChatSession.query.get(self.session_id)
+            # If no session exists, create a new one
+            if not self.chat_session:
+                self.chat_session = ChatSession(user_id=self.user_id)
+                db.session.add(self.chat_session)
+                db.session.commit()
+
+        # Initialize chat_history from DB
+        self.chat_history = self.get_chat_history()
+
+        # Add initial developer prompt if history is empty
         if not self.chat_history:
             self.add_chat_history(role="developer", message=AGENT_PROMPT)
+            self.chat_history = self.get_chat_history()
 
     def add_chat_history(self, role: str, message: str):
-        """Adds a message to the chat history
+        chat_message = ChatMessage(
+            session_id=self.chat_session.id, role=role, content=message
+        )
+        with self.app.app_context():
+            db.session.add(chat_message)
+            db.session.commit()
 
-        Args:
-            role (str): The role of the message sender
-            message (str): The message content
-        Returns:
-            None
-        """
-        self.chat_history.append({"role": role, "content": message})
+    def get_chat_history(self):
+        with self.app.app_context():
+            return [
+                {"role": msg.role, "content": msg.content}
+                for msg in ChatMessage.query.filter_by(
+                    session_id=self.chat_session.id
+                ).order_by(ChatMessage.id)
+            ]
 
     def process_message_stream(self, message: str):
         """Processes a message
@@ -194,11 +222,9 @@ class ChatService:
             )
 
             # Add the tool call result to the chat history
-            self.chat_history.append(
-                {
-                    "role": "assistant",
-                    "content": f"TOOL_NAME: {tool_name}, RESULT: {parsed_result}",
-                }
+            self.add_chat_history(
+                role="assistant",
+                message=f"TOOL_NAME: {tool_name}, RESULT: {parsed_result}",
             )
 
         # Get the final answer
@@ -270,15 +296,7 @@ class ChatService:
         )
         try:
             if tool_name == "analyze_events":
-                # check if we have calendar events,
-                # ie. has tool get_events_in_month been called
-                # if not we cant run analyse_events
-                if "get_events_in_month" in self.tool_history:
-                    result = analyze_events(
-                        self.tool_history["get_events_in_month"]["result"]
-                    )
-                else:
-                    result = "Run get_events_in_month first"
+                result = analyze_events(tool_args["events"])
             elif tool_name == "get_events_in_month":
                 result = self.calendar_service.get_events_in_month()
             else:
@@ -288,10 +306,9 @@ class ChatService:
                     user_id=self.user_id,
                     arguments=tool_args,
                 )
-            print(self.tool_history)
+            logger.info(f"CHAT HISTORY: {self.chat_history}")
             logger.info(f"Tool result: {result}")
             logger.info(f"Result type: {type(result)}")
-            self.tool_history[tool_name] = {"args": tool_args, "result": result}
             return result
         except Exception as e:
             error_msg = f"Tool execution failed: {str(e)}"
@@ -299,8 +316,5 @@ class ChatService:
             logger.info(f"Error type: {type(e).__name__}")
             logger.info(f"Error message: {str(e)}")
             logger.info(f"Traceback: {traceback.format_exc()}")
-            self.tool_history[tool_name] = {
-                "args": tool_args,
-                "result": "error",
-            }
+
             return {"error": error_msg}

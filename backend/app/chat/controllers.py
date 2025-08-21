@@ -1,5 +1,4 @@
-from flask import Blueprint, jsonify, request, Response  # type: ignore
-
+from flask import Blueprint, jsonify, request, Response, current_app  # type: ignore
 from app.chat.services import ChatService  # type: ignore
 from app.chat.decorators import chat_calendar_service_required
 from app.auth.decorators import login_required
@@ -11,14 +10,17 @@ logger = logging.getLogger(__name__)
 chat = Blueprint("chat", __name__)
 
 
-def generate(message: str, chat_service):
-    print(f"process_message called with message: {message}")
+def generate(app, message: str, chat_service):
+    ctx = app.app_context()
+    ctx.push()  # manually push context
     try:
         for chunk in chat_service.process_message_stream(message):
             if isinstance(chunk, str):
                 yield f"data: {chunk}\n\n"
     except Exception as e:
         yield f"data: {json.dumps({'type': 'error', 'text': str(e)})}\n\n"
+    finally:
+        ctx.pop()
 
 
 @chat.route("/message/stream", methods=["POST"])
@@ -38,7 +40,11 @@ def send_message_stream(chat_service: ChatService):
             return jsonify({"error": "Message is required"}), 400
 
         return Response(
-            generate(message=message, chat_service=chat_service),
+            generate(
+                current_app._get_current_object(),
+                message=message,
+                chat_service=chat_service,
+            ),
             mimetype="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",
