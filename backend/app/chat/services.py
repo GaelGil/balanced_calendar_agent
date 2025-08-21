@@ -31,6 +31,7 @@ class ChatService:
         self.composio = Composio()
         self.user_id = "0000-1111-2222"
         self.llm: OpenAI = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.tool_history = {}
         if not self.chat_history:
             self.add_chat_history(role="developer", message=AGENT_PROMPT)
 
@@ -244,21 +245,23 @@ class ChatService:
         logger.info(
             f"Tool Name Type {type(tool_name)}, Tool Args Type {type(tool_args)}"
         )
-        if tool_name == "analyze_events":
-            return analyze_events()
-        elif tool_name == "calendar_availability":
-            return calendar_availability()
-        elif tool_name == "get_events_in_month":
-            return self.calendar_service.list_events()
         try:
-            composio = Composio()
-            result = composio.tools.execute(
-                slug=tool_name,
-                user_id=self.user_id,
-                arguments=tool_args,
-            )
-            logger.info(f"Raw Composio result: {result}")
-            logger.info(f"Composio result type: {type(result)}")
+            if tool_name == "analyze_events":
+                result = analyze_events()
+            elif tool_name == "calendar_availability":
+                result = calendar_availability()
+            elif tool_name == "get_events_in_month":
+                result = self.calendar_service.get_events_in_month()
+            else:
+                composio = Composio()
+                result = composio.tools.execute(
+                    slug=tool_name,
+                    user_id=self.user_id,
+                    arguments=tool_args,
+                )
+            logger.info(f"Tool result: {result}")
+            logger.info(f"Result type: {type(result)}")
+            self.tool_history[tool_name] = {"args": tool_args, "result": result}
             return result
         except Exception as e:
             error_msg = f"Tool execution failed: {str(e)}"
@@ -266,4 +269,8 @@ class ChatService:
             logger.info(f"Error type: {type(e).__name__}")
             logger.info(f"Error message: {str(e)}")
             logger.info(f"Traceback: {traceback.format_exc()}")
+            self.tool_history[tool_name] = {
+                "args": tool_args,
+                "result": "error",
+            }
             return {"error": error_msg}

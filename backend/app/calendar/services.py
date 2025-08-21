@@ -50,5 +50,21 @@ class CalendarService:
         service = self.get_service()
         return service.events().insert(calendarId="primary", body=event).execute()
 
+    def find_availability(self, start_time, end_time):
+        service = self.get_service()
+        events_result = (
+            service.events()
+            .list(
+                calendarId="primary",
+                timeMin=start_time.isoformat(),
+                timeMax=end_time.isoformat(),
+                maxResults=10,
+                singleEvents=True,
+                orderBy="startTime",
+            )
+            .execute()
+        )
+        return events_result.get("items", [])
+
     def status(self):
         return self.creds is not None and self.creds.valid
