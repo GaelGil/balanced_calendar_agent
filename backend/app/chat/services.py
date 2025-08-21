@@ -281,17 +281,8 @@ class ChatService:
                     )
                 else:
                     result = "Run get_events_in_month first"
-
-            # elif tool_name == "calendar_availability":
-            #     result = self.calendar_service.calendar_availability()
             elif tool_name == "get_events_in_month":
                 result = self.calendar_service.get_events_in_month()
-                # if "get_events_in_month" in self.tool_history:
-                #     result = analyze_events(
-                #         self.tool_history["get_events_in_month"]["result"]
-                #     )
-                # else:
-                #     result = "Run get_events_in_month first"
             else:
                 composio = Composio()
                 result = composio.tools.execute(
@@ -299,6 +290,7 @@ class ChatService:
                     user_id=self.user_id,
                     arguments=tool_args,
                 )
+            print(self.tool_history)
             logger.info(f"Tool result: {result}")
             logger.info(f"Result type: {type(result)}")
             self.tool_history[tool_name] = {"args": tool_args, "result": result}

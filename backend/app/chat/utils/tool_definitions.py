@@ -25,17 +25,7 @@ tool_definitions = [
         "type": "function",
         "name": "analyze_events",
         "description": "Analyze the events in the users calendar and return a summary of the events.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "query": {
-                    "type": "string",
-                    "description": "Get user's calendar events for the current month.",
-                }
-            },
-            "required": ["query"],
-            "additionalProperties": False,
-        },
+        "parameters": {"type": "object", "properties": {}},
     },
     {
         "type": "function",
