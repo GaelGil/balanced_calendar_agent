@@ -1,5 +1,7 @@
 from flask import Blueprint, jsonify, request, Response  # type: ignore
+
 from app.chat.services import ChatService  # type: ignore
+from app.chat.decorators import chat_calendar_service_required
 from app.auth.decorators import login_required
 import json
 import logging
@@ -7,10 +9,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 chat = Blueprint("chat", __name__)
-chat_service = ChatService()
 
 
-def generate(message: str):
+def generate(message: str, chat_service):
     print(f"process_message called with message: {message}")
     try:
         for chunk in chat_service.process_message_stream(message):
@@ -22,7 +23,8 @@ def generate(message: str):
 
 @chat.route("/message/stream", methods=["POST"])
 @login_required
-def send_message_stream():
+@chat_calendar_service_required
+def send_message_stream(chat_service: ChatService):
     """Send a message to the AI agent and get a streaming SSE response."""
     print("send_message_stream called")
     try:
@@ -30,12 +32,13 @@ def send_message_stream():
         message = data.get("message")
         print(data)
         print(message)
+        logger.info(f"Calendar service type: {type(chat_service.calendar_service)}")
 
         if not message:
             return jsonify({"error": "Message is required"}), 400
 
         return Response(
-            generate(message=message),
+            generate(message=message, chat_service=chat_service),
             mimetype="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",

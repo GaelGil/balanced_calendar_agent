@@ -19,17 +19,7 @@ tool_definitions = [
         "type": "function",
         "name": "get_events_in_month",
         "description": "Get user's calendar events for the current month.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "query": {
-                    "type": "string",
-                    "description": "The credentials for the Google Calendar API.",
-                }
-            },
-            "required": ["query"],
-            "additionalProperties": False,
-        },
+        "parameters": {"type": "object", "properties": {}},
     },
     {
         "type": "function",

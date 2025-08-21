@@ -9,7 +9,6 @@ import logging
 import json
 import traceback
 from app.chat.utils.tools import (
-    get_events_in_month,
     calendar_availability,
     analyze_events,
 )
@@ -24,7 +23,8 @@ load_dotenv(Path("../../.env"))
 
 
 class ChatService:
-    def __init__(self):
+    def __init__(self, calendar_service):
+        self.calendar_service = calendar_service
         self.chat_history: list[dict] = []
         self.model_name: str = "gpt-4.1-mini"
         self.tools = tool_definitions
@@ -249,7 +249,7 @@ class ChatService:
         elif tool_name == "calendar_availability":
             return calendar_availability()
         elif tool_name == "get_events_in_month":
-            return get_events_in_month()
+            return self.calendar_service.list_events()
         try:
             composio = Composio()
             result = composio.tools.execute(
