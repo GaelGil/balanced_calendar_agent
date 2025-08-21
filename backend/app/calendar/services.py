@@ -51,6 +51,9 @@ class CalendarService:
         return service.events().insert(calendarId="primary", body=event).execute()
 
     def find_availability(self, start_time, end_time):
+        """
+        Return busy events between start_time and end_time.
+        """
         service = self.get_service()
         events_result = (
             service.events()
@@ -58,13 +61,53 @@ class CalendarService:
                 calendarId="primary",
                 timeMin=start_time.isoformat(),
                 timeMax=end_time.isoformat(),
-                maxResults=10,
                 singleEvents=True,
                 orderBy="startTime",
             )
             .execute()
         )
         return events_result.get("items", [])
+
+    def find_free_slots(self, start_time, end_time):
+        """
+        Return free time slots between start_time and end_time.
+        """
+        busy_events = self.find_availability(start_time, end_time)
+
+        # Sort events by start time
+        busy_events.sort(
+            key=lambda e: e["start"].get("dateTime", e["start"].get("date"))
+        )
+
+        free_slots = []
+        current_start = start_time
+
+        for event in busy_events:
+            event_start_str = event["start"].get("dateTime") or event["start"].get(
+                "date"
+            )
+            event_end_str = event["end"].get("dateTime") or event["end"].get("date")
+
+            event_start = datetime.datetime.fromisoformat(event_start_str)
+            event_end = datetime.datetime.fromisoformat(event_end_str)
+
+            # If there's a gap before this event, it's free
+            if current_start < event_start:
+                free_slots.append(
+                    {"start": current_start.isoformat(), "end": event_start.isoformat()}
+                )
+
+            # Move the current_start forward
+            if event_end > current_start:
+                current_start = event_end
+
+        # After the last event, check if there's still free time
+        if current_start < end_time:
+            free_slots.append(
+                {"start": current_start.isoformat(), "end": end_time.isoformat()}
+            )
+
+        return free_slots
 
     def status(self):
         return self.creds is not None and self.creds.valid

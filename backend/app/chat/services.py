@@ -178,8 +178,8 @@ class ChatService:
             except TypeError:
                 result = self.execute_tool(tool_name, parsed_args.get("location"))
 
-            logger.info(f"[DEBUG] Tool result for idx={tool_idx}: {result}")
-            logger.info(f"[DEBUG] Tool result for idx={tool_idx}: {result}")
+            parsed_result = self.parse_tool_result(tool_name, result)
+            logger.info(f"[DEBUG] Tool result for idx={tool_idx}: {parsed_result}")
 
             # yield the tool result
             yield json.dumps(
@@ -187,16 +187,15 @@ class ChatService:
                     "type": "tool_result",
                     "tool_name": tool_name,
                     "tool_input": parsed_args,
-                    "tool_result": result,
+                    "tool_result": parsed_result,
                 }
             )
-            logger.info(f"[DEBUG] Tool result for idx={tool_idx}: {result}")
 
             # Add the tool call result to the chat history
             self.chat_history.append(
                 {
                     "role": "assistant",
-                    "content": f"TOOL_NAME: {tool_name}, RESULT: {result}",
+                    "content": f"TOOL_NAME: {tool_name}, RESULT: {parsed_result}",
                 }
             )
 
@@ -270,15 +269,13 @@ class ChatService:
         try:
             if tool_name == "analyze_events":
                 # check if we have calendar events,
+                # ie. has tool get_events_in_month been called
                 # if not we cant run analyse_events
                 if "get_events_in_month" in self.tool_history:
                     result = analyze_events(
                         self.tool_history["get_events_in_month"]["result"]
                     )
-                elif (
-                    tool_name != "get_events_in_month"
-                    and "get_events_in_month" not in self.tool_history
-                ):
+                else:
                     result = "Run get_events_in_month first"
 
             elif tool_name == "calendar_availability":

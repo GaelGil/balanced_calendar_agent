@@ -9,6 +9,9 @@ class EventsAnalyzed(BaseModel):
     analysis: str = Field(
         description="Analysis of the events in the calendar if they are lots of work events or not",
     )
+    proposed_steps: str = Field(
+        description="Proposed steps to take to balance the work and non work events",
+    )
 
 
 class EventSearchResults(BaseModel):
@@ -18,16 +21,6 @@ class EventSearchResults(BaseModel):
     description: str
     image: str
     link: str
-
-
-class FinanceSearchResults(BaseModel):
-    extracted_price: str
-    link: str
-    name: str
-    price: str
-    movement: str
-    percentage: str
-    stock: str
 
 
 class SearchResults(BaseModel):
