@@ -30,20 +30,26 @@ class CalendarService:
                 raise ValueError("Credentials not valid, user must re-auth")
         return build("calendar", "v3", credentials=self.creds)
 
-    def get_events_in_month(self, max_results=30):
+    def get_events_in_month(self):
         service = self.get_service()
         now = datetime.datetime.now(datetime.timezone.utc)
+        start_of_month = now.replace(day=1)
+        end_of_month = start_of_month.replace(month=now.month + 1) - datetime.timedelta(
+            days=1
+        )
+
         events_result = (
             service.events()
             .list(
                 calendarId="primary",
-                timeMin=now.isoformat(),
-                maxResults=max_results,
+                timeMin=start_of_month.isoformat(),
+                timeMax=end_of_month.isoformat(),
                 singleEvents=True,
                 orderBy="startTime",
             )
             .execute()
         )
+
         return events_result.get("items", [])
 
     def create_event(self, event):
