@@ -16,7 +16,7 @@ LUMA_EVENTS = {}
 llm = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-def analyze_events(calendar: list[dict]) -> EventsAnalyzed:
+def analyze_events(events: str) -> EventsAnalyzed:
     """Analyzes the events in the calendar and returns a summary of the events.
 
     Args:
@@ -30,7 +30,7 @@ def analyze_events(calendar: list[dict]) -> EventsAnalyzed:
         {
             "role": "developer",
             "content": f""" {ANALYSE_EVENTS_PROMPT}
-                    Here is the Calendar: {calendar}
+                    Here is the events: {events}
                     """,
         },
         {

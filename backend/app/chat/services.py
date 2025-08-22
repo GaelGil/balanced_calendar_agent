@@ -34,6 +34,7 @@ class ChatService:
         self.calendar_service = calendar_service
         self.app = app
         self.user_id = user_id
+        self.composio_user_id = "0000-1111-2222"
         self.session_id = session_id
         self.chat_session = None
         self.model_name = "gpt-4.1-mini"
@@ -41,15 +42,15 @@ class ChatService:
         self.composio = Composio()
         self.llm: OpenAI = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-        with self.app.app_context():
-            # Load existing chat session if session_id is provided
-            if self.session_id:
-                self.chat_session = ChatSession.query.get(self.session_id)
-            # If no session exists, create a new one
-            if not self.chat_session:
-                self.chat_session = ChatSession(user_id=self.user_id)
-                db.session.add(self.chat_session)
-                db.session.commit()
+        # with self.app.app_context():
+        # Load existing chat session if session_id is provided
+        if self.session_id:
+            self.chat_session = ChatSession.query.get(self.session_id)
+        # If no session exists, create a new one
+        if not self.chat_session:
+            self.chat_session = ChatSession(user_id=self.user_id)
+            db.session.add(self.chat_session)
+            db.session.commit()
 
         # Initialize chat_history from DB
         self.chat_history = self.get_chat_history()
@@ -63,18 +64,18 @@ class ChatService:
         chat_message = ChatMessage(
             session_id=self.chat_session.id, role=role, content=message
         )
-        with self.app.app_context():
-            db.session.add(chat_message)
-            db.session.commit()
+        # with self.app.app_context():
+        db.session.add(chat_message)
+        db.session.commit()
 
     def get_chat_history(self):
-        with self.app.app_context():
-            return [
-                {"role": msg.role, "content": msg.content}
-                for msg in ChatMessage.query.filter_by(
-                    session_id=self.chat_session.id
-                ).order_by(ChatMessage.id)
-            ]
+        # with self.app.app_context():
+        return [
+            {"role": msg.role, "content": msg.content}
+            for msg in ChatMessage.query.filter_by(
+                session_id=self.chat_session.id
+            ).order_by(ChatMessage.id)
+        ]
 
     def process_message_stream(self, message: str):
         """Processes a message
@@ -227,6 +228,7 @@ class ChatService:
                 message=f"TOOL_NAME: {tool_name}, RESULT: {parsed_result}",
             )
 
+        logger.info(f"[DEBUG] CHAT HISTORY: {self.get_chat_history()}")
         # Get the final answer
         # IF we called tools to get updated information then we must form a final response
         if tool_calls:
@@ -303,7 +305,7 @@ class ChatService:
                 composio = Composio()
                 result = composio.tools.execute(
                     slug=tool_name,
-                    user_id=self.user_id,
+                    user_id=self.composio_user_id,
                     arguments=tool_args,
                 )
             logger.info(f"CHAT HISTORY: {self.chat_history}")
