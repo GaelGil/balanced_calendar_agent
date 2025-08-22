@@ -50,7 +50,7 @@ const CalendarPage = () => {
 
           {!chat && (
             <button
-              className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold p-6 shadow-lg hover:scale-105"
+              className="fixed bottom-6 right-6 bg-blue-600 rounded-full hover:bg-blue-700 text-white font-semibold p-6 shadow-lg hover:scale-105 transition duration-200"
               onClick={() => setChat(true)}
             >
               Chat

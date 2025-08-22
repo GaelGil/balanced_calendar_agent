@@ -7,7 +7,7 @@ import type { ChatMessageProps } from "../../types/Chat";
 const ChatMessage = ({ message }: ChatMessageProps) => {
   if (message.role === "user") {
     return (
-      <div className="flex justify-end">
+      <div className="flex justify-end mb-4">
         <div className="max-w-[70%] bg-blue-600 text-white rounded-lg px-4 py-2">
           <div className="prose prose-sm prose-invert max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -27,7 +27,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   const hasBlocks = blocks.length > 0;
 
   return (
-    <div className="flex justify-start">
+    <div className="flex justify-start mb-4">
       <div className="max-w-[85%] bg-white rounded-lg border border-gray-200 overflow-hidden">
         {hasBlocks ? (
           <div className="space-y-0">

@@ -17,7 +17,7 @@ def parse_composio_event_search_results(composio_result: dict) -> dict:
             event = EventSearchResults(
                 title=event_item.get("title", ""),
                 date=f"{event_item.get('date', '').get('when', '')} {event_item.get('date', '').get('start_date', '')}",
-                address="".join(event_item.get("address"), ""),
+                address="".join(event_item.get("address", "")),
                 description=event_item.get("description", ""),
                 image=event_item.get("image", ""),
                 link=event_item.get("link", ""),
