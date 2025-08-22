@@ -77,6 +77,9 @@ class ChatService:
             ).order_by(ChatMessage.id)
         ]
 
+    def update_chat_history(self):
+        self.chat_history = self.get_chat_history()
+
     def process_message_stream(self, message: str):
         """Processes a message
 
@@ -89,6 +92,8 @@ class ChatService:
         """
         # add user message to chat history
         self.add_chat_history(role="user", message=message)
+        self.update_chat_history()
+        logger.info(f"[DEBUG] CHAT HISTORY BEFORE LLM CALL: {self.get_chat_history()}")
         # log the message
         logger.info(f"process_message called with message: {message}")
         # stream the response
@@ -227,8 +232,9 @@ class ChatService:
                 role="assistant",
                 message=f"TOOL_NAME: {tool_name}, RESULT: {parsed_result}",
             )
+            self.chat_history = self.get_chat_history()
 
-        logger.info(f"[DEBUG] CHAT HISTORY: {self.get_chat_history()}")
+        logger.info(f"[DEBUG] CHAT HISTORY AFTER TOOL RUN: {self.get_chat_history()}")
         # Get the final answer
         # IF we called tools to get updated information then we must form a final response
         if tool_calls:
@@ -239,8 +245,11 @@ class ChatService:
                 input=self.chat_history,
                 stream=True,
             )
+            logger.info(
+                f"[DEBUG] CHAT HISTORY AFTER FINAL LLM CALL: {self.get_chat_history()}"
+            )
 
-            print("Assistant (final): ", end="", flush=True)
+            logger.info("Assistant (final): ", end="", flush=True)
             # Stream partial text
             for ev in final_stream:
                 logger.info(
