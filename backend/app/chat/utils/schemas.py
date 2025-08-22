@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 
 
 class EventsAnalyzed(BaseModel):
@@ -15,12 +15,12 @@ class EventsAnalyzed(BaseModel):
 
 
 class EventSearchResults(BaseModel):
-    title: str
-    date: str
-    address: str
-    description: str
-    image: str
-    link: str
+    title: Optional[str] = None
+    date: Optional[str] = None
+    address: Optional[str] = None
+    description: Optional[str] = None
+    image: Optional[str] = None
+    link: Optional[str] = None
 
 
 class SearchResults(BaseModel):
