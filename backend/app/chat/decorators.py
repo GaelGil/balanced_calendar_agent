@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import session, redirect, url_for, current_app
+from flask import session, redirect, url_for
 from app.calendar.services import CalendarService
 from app.chat.services import ChatService
 from app.calendar.utils import load_credentials, save_credentials
@@ -23,7 +23,6 @@ def chat_calendar_service_required(f):
 
         # Create or load ChatService
         chat_service = ChatService(
-            app=current_app,
             user_id=user_id,
             calendar_service=calendar_service,
             session_id=chat_session_id,
