@@ -30,6 +30,7 @@ load_dotenv(Path("../../.env"))
 class ChatService:
     def __init__(self, user_id, calendar_service: CalendarService, session_id=None):
         self.calendar_service = calendar_service
+        # self.app = app
         self.user_id = user_id
         self.composio_user_id = "0000-1111-2222"
         self.session_id = session_id
@@ -39,6 +40,7 @@ class ChatService:
         self.composio = Composio()
         self.llm: OpenAI = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+        # with self.app.app_context():
         # Load existing chat session if session_id is provided
         if self.session_id:
             self.chat_session = ChatSession.query.get(self.session_id)
@@ -60,11 +62,13 @@ class ChatService:
         chat_message = ChatMessage(
             session_id=self.chat_session.id, role=role, content=message
         )
+        # with self.app.app_context():
         db.session.add(chat_message)
         db.session.commit()
         self.chat_history = self.get_chat_history()
 
     def get_chat_history(self):
+        # with self.app.app_context():
         return [
             {"role": msg.role, "content": msg.content}
             for msg in ChatMessage.query.filter_by(
@@ -84,6 +88,7 @@ class ChatService:
         """
         # add user message to chat history
         self.add_chat_history(role="user", message=message)
+        # self.update_chat_history()
         logger.info(f"[DEBUG] CHAT HISTORY BEFORE LLM CALL: {self.get_chat_history()}")
         # log the message
         logger.info(f"process_message called with message: {message}")
@@ -98,7 +103,7 @@ class ChatService:
 
         # keep track of tool calls
         tool_calls = {}
-        init_response = ""
+
         # initial call
         for event in stream:
             print(
@@ -110,7 +115,7 @@ class ChatService:
                 # yield the text
                 yield json.dumps({"type": "init_response", "text": event.delta})
                 logger.info(f"response.output_text.delta: {event.delta}")
-                init_response += event.delta
+                # print(event.delta, end="", flush=True)
             # if there is no text, print a newline
             elif event.type == "response.output_text.done":
                 print()
@@ -178,9 +183,7 @@ class ChatService:
                 logger.info(f"[DEBUG] Marked tool idx={idx} done")
 
         logger.info(f"TOOL CALLS: {tool_calls}")
-        if init_response:
-            self.add_chat_history(role="developer", message=init_response)
-            init_response = ""
+
         # Execute the tool calls
         for tool_idx, tool in tool_calls.items():
             tool_name = tool["name"]
@@ -225,6 +228,7 @@ class ChatService:
                 role="assistant",
                 message=f"TOOL_NAME: {tool_name}, RESULT: {parsed_result}",
             )
+            self.chat_history = self.get_chat_history()
 
         logger.info(f"[DEBUG] CHAT HISTORY AFTER TOOL RUN: {self.get_chat_history()}")
         # Get the final answer
@@ -241,10 +245,8 @@ class ChatService:
                 f"[DEBUG] CHAT HISTORY AFTER FINAL LLM CALL: {self.get_chat_history()}"
             )
 
-            logger.info("Assistant (final): ", end="", flush=True)
+            # logger.info("Assistant (final): ", end="", flush=True)
             # Stream partial text
-            final_response = ""
-
             for ev in final_stream:
                 logger.info(
                     f"\n[DEBUG EVENT FINAL] type={ev.type}, delta={getattr(ev, 'delta', None)}"
@@ -252,14 +254,11 @@ class ChatService:
                 # if there is text, print it/yield it
                 if ev.type == "response.output_text.delta":
                     yield json.dumps({"type": "final_response", "text": ev.delta})
-                    final_response += ev.delta
                     logger.info(f"response.output_text.delta: {event.delta}")
+                    # print(ev.delta, end="", flush=True)
                 # if there is no text, print a newline
                 elif ev.type == "response.output_text.done":
                     print()
-            if final_response:
-                self.add_chat_history(role="developer", message=final_response)
-                final_response = ""
         pass
 
     def parse_tool_result(self, tool_name: str, tool_result: dict):
