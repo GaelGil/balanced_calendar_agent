@@ -25,17 +25,16 @@ class ChatMessage(db.Model):
     role = db.Column(db.String, nullable=False)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
     session = db.relationship("ChatSession", back_populates="messages")
 
 
+# TODO: RUNN MIGRATIONS for removing userid
 class ToolHistory(db.Model):
     __tablename__ = "tool_history"
     id = db.Column(db.Integer, primary_key=True)
     session_id = db.Column(
         db.Integer, db.ForeignKey("chat_sessions.id"), nullable=False
     )
-    user_id = db.Column(db.String, nullable=False)
     tool_name = db.Column(db.String, nullable=False)
     tool_input = db.Column(db.Text, nullable=False)
     tool_output = db.Column(db.Text, nullable=False)

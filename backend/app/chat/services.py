@@ -60,12 +60,12 @@ class ChatService:
             self.add_chat_history(role="developer", message=AGENT_PROMPT)
             self.chat_history = self.get_chat_history()
 
-    def add_tool_history(self, tool_name: str, tool_args: str, tool_output: str):
+    def add_tool_history(self, tool_name: str, tool_args: dict, tool_output: str):
         tool_history = ToolHistory(
             session_id=self.chat_session.id,
             tool_name=tool_name,
-            tool_args=tool_args,
-            tool_output=tool_output,
+            tool_input=str(tool_args),
+            tool_output=str(tool_output),
         )
         # with self.app.app_context():
         db.session.add(tool_history)
@@ -237,8 +237,11 @@ class ChatService:
             except TypeError:
                 result = self.execute_tool(tool_name, parsed_args.get("location"))
 
-            parsed_result = self.parse_tool_result(tool_name, result)
-            logger.info(f"[DEBUG] Tool result for idx={tool_idx}: {parsed_result}")
+            if isinstance(result, str):  # if result is a string
+                result = {"result": result}
+
+            result = self.parse_tool_result(tool_name, result)
+            logger.info(f"[DEBUG] Tool result for idx={tool_idx}: {result}")
 
             # yield the tool result
             yield json.dumps(
@@ -246,14 +249,14 @@ class ChatService:
                     "type": "tool_result",
                     "tool_name": tool_name,
                     "tool_input": parsed_args,
-                    "tool_result": parsed_result,
+                    "tool_result": result,
                 }
             )
 
             # Add the tool call result to the chat history
             self.add_chat_history(
                 role="assistant",
-                message=f"TOOL_NAME: {tool_name}, RESULT: {parsed_result}",
+                message=f"TOOL_NAME: {tool_name}, RESULT: {result}",
             )
             self.chat_history = self.get_chat_history()
 
@@ -335,8 +338,14 @@ class ChatService:
         try:
             if tool_name == "analyze_events":
                 if "get_events_in_month" not in self.tool_history:
-                    return {"msg": "Please run get_events_in_month first"}
-                result = analyze_events(tool_args["events"])
+                    return "Please run get_events_in_month first"
+                result = analyze_events(**tool_args)
+            elif tool_name == "create_event":
+                result = self.calendar_service.create_event(tool_args)
+            elif tool_name == "update_event":
+                result = self.calendar_service.update_event(**tool_args)
+            elif tool_name == "delete_event":
+                result = self.calendar_service.delete_event(**tool_args)
             elif tool_name == "get_events_in_month":
                 result = self.calendar_service.get_events_in_month()
             else:

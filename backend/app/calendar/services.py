@@ -52,10 +52,6 @@ class CalendarService:
 
         return events_result.get("items", [])
 
-    def create_event(self, event):
-        service = self.get_service()
-        return service.events().insert(calendarId="primary", body=event).execute()
-
     def find_availability(self, start_time, end_time) -> list:
         """
         Return busy events between start_time and end_time.
@@ -114,6 +110,22 @@ class CalendarService:
             )
 
         return free_slots
+
+    def create_event(self, event: dict):
+        service = self.get_service()
+        return service.events().insert(calendarId="primary", body=event).execute()
+
+    def delete_event(self, event_id: str):
+        service = self.get_service()
+        return service.events().delete(calendarId="primary", eventId=event_id).execute()
+
+    def update_event(self, event_id: str, event: dict):
+        service = self.get_service()
+        return (
+            service.events()
+            .update(calendarId="primary", eventId=event_id, body=event)
+            .execute()
+        )
 
     def status(self):
         return self.creds is not None and self.creds.valid
