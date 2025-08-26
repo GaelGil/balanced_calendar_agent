@@ -33,7 +33,7 @@ const CalendarPage = () => {
     window.location.href = "http://localhost:5000/calendar/authorize";
   };
   return (
-    <div className="p-10 flex flex-col items-center justify-center">
+    <div className="p-10 flex flex-col text-secondary-300 items-center justify-center">
       <h1>{PROJECT_NAME}</h1>
 
       {!isConnected ? (

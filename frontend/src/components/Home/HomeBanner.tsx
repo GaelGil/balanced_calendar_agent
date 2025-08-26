@@ -8,15 +8,15 @@ const HomeBanner = () => {
 
   return (
     <>
-      <div className="min-h-[80vh] flex items-center justify-center bg-gradient-to-r from-[#e3f0ff] to-[#f8fafd]">
+      <div className="min-h-[80vh] flex items-center justify-center from-[#e3f0ff] to-[#f8fafd] text-primary-600">
         <div className="max-w-7xl mx-auto px-4 w-full">
           <div className="flex flex-col-reverse md:flex-row items-center">
             {/* Left content */}
             <div className="w-full md:w-1/2 text-left">
-              <h1 className="font-extrabold text-4xl md:text-5xl mb-6 text-[#1a237e]">
+              <h1 className="font-extrabold  text-4xl md:text-5xl mb-6 ">
                 {PROJECT_NAME}
               </h1>
-              <p className="text-lg md:text-xl text-gray-700 mb-8">
+              <p className="text-lg md:text-xl text-gray-700 mb-8 text-secondary-300">
                 Lorem ipsum, dolor sit amet consectetur adipisicing elit.
                 Itaque, quaerat minima ducimus doloribus dolore, inventore
                 impedit iste maxime temporibus earum beatae tenetur quisquam
@@ -24,27 +24,13 @@ const HomeBanner = () => {
               </p>
 
               {!user ? (
-                <Link
-                  to="/login"
-                  className={`no-underline ${
-                    location.pathname === "/login"
-                      ? "text-blue-600"
-                      : "text-gray-700 hover:text-blue-600"
-                  }`}
-                >
+                <Link to="/login">
                   <button className="px-10 py-4 text-lg font-bold rounded-lg bg-[#1976d2] text-white border-none shadow-md hover:shadow-lg transition">
                     View Content
                   </button>
                 </Link>
               ) : (
-                <Link
-                  to="/calendar"
-                  className={` no-underline${
-                    location.pathname === "/calendar"
-                      ? "text-blue-600"
-                      : "text-gray-700 hover:text-blue-600"
-                  }`}
-                >
+                <Link to="/calendar">
                   <button className="px-10 py-4 text-lg font-bold rounded-lg bg-[#1976d2] text-white border-none shadow-md hover:shadow-lg transition">
                     View Content
                   </button>

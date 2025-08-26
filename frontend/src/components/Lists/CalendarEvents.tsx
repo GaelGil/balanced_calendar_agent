@@ -113,7 +113,9 @@ export default function CalendarEvents() {
     )}`;
 
   if (loading) {
-    return <p className="text-center text-gray-600 font-semibold">Loading …</p>;
+    return (
+      <p className="text-center text-primary-600 font-semibold">Loading …</p>
+    );
   }
 
   if (error) {
@@ -126,7 +128,7 @@ export default function CalendarEvents() {
 
   return (
     <div>
-      <div className="grid grid-cols-7 gap-1 text-center font-semibold">
+      <div className="grid grid-cols-7 gap-1 text-secondary-300 text-center font-semibold">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
           <div key={d} className="py-2">
             {d}
@@ -140,7 +142,7 @@ export default function CalendarEvents() {
           // skip empty days/days not part of current month
           if (!day)
             return (
-              <div key={idx} className="py-8 border border-gray-200"></div>
+              <div key={idx} className="py-8 border border-secondary-300"></div>
             );
 
           const dateKey = formatDate(day); // get date key which is YYYY-MM-DD
@@ -151,15 +153,15 @@ export default function CalendarEvents() {
             <div
               key={idx}
               className={`border border-gray-200 p-2 h-32 flex flex-col ${
-                dateKey === toDateKey(new Date()) ? "bg-yellow-100" : ""
+                dateKey === toDateKey(new Date()) ? "bg-yellow-50" : ""
               }`}
             >
-              <div className="font-semibold mb-1">{day}</div>
+              <div className="font-semibold mb-1 text-secondary-300">{day}</div>
 
               <div className="flex-1 overflow-y-auto">
                 {dayEvents.length === 0 ? (
                   // if no events
-                  <div className="text-xs text-gray-400">No events</div>
+                  <div className="text-xs text-secondary-300">No events</div>
                 ) : (
                   // if events
                   // for each event
@@ -167,7 +169,7 @@ export default function CalendarEvents() {
                     // display
                     <div
                       key={ev.id}
-                      className="bg-blue-500 text-white text-xs px-1 py-0.5 rounded mb-0.5 truncate"
+                      className="bg-blue-500 text-primary-600 text-xs px-1 py-0.5 rounded mb-0.5 truncate"
                       title={`${ev.time ? ev.time + " • " : ""}${ev.summary}`}
                     >
                       {ev.time ? `${ev.time} ` : ""}
