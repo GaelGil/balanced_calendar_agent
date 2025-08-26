@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Container } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import AuthForm from "./AuthForm";
 import { login, signup } from "../../api/auth";
@@ -65,8 +64,8 @@ const SignUpForm = () => {
   };
 
   return (
-    <Container className="d-flex flex-column justify-content-center align-items-center">
-      <h1> Sign Up</h1>
+    <div className="d-flex flex-column justify-content-center align-items-center">
+      <h1 className="text-primary-600"> Sign Up</h1>
       <div>
         {/* importing algorithm form component with sorting specific values */}
         <AuthForm
@@ -79,7 +78,7 @@ const SignUpForm = () => {
         />
         {message && <p className="text-danger">{message}</p>}
       </div>
-    </Container>
+    </div>
   );
 };
 

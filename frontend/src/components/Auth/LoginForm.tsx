@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Container } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import AuthForm from "./AuthForm";
 import { login } from "../../api/auth";
@@ -56,9 +55,10 @@ const LogInForm = () => {
   };
 
   return (
-    <Container className="d-flex flex-column justify-content-center align-items-center">
+    <div className="d-flex flex-column justify-content-center align-items-center">
+      <h1 className="text-primary-600">Log In</h1>
+
       <div>
-        <h1>Log In</h1>
         <AuthForm
           isLogin={true}
           username={username}
@@ -68,7 +68,7 @@ const LogInForm = () => {
         />
         {message && <p className="text-danger">{message}</p>}
       </div>
-    </Container>
+    </div>
   );
 };
 
