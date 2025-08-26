@@ -40,7 +40,6 @@ class ChatService:
         self.composio = Composio()
         self.llm: OpenAI = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-        # with self.app.app_context():
         # Load existing chat session if session_id is provided
         if self.session_id:
             self.chat_session = ChatSession.query.get(self.session_id)
@@ -63,13 +62,11 @@ class ChatService:
         chat_message = ChatMessage(
             session_id=self.chat_session.id, role=role, content=message
         )
-        # with self.app.app_context():
         db.session.add(chat_message)
         db.session.commit()
         self.chat_history = self.get_chat_history()
 
     def get_chat_history(self):
-        # with self.app.app_context():
         return [
             {"role": msg.role, "content": msg.content}
             for msg in ChatMessage.query.filter_by(
