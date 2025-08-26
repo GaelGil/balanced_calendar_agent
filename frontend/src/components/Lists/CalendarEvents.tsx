@@ -169,7 +169,7 @@ export default function CalendarEvents() {
                     // display
                     <div
                       key={ev.id}
-                      className="bg-blue-500 text-primary-600 text-xs px-1 py-0.5 rounded mb-0.5 truncate"
+                      className="bg-blue-500 text-white text-xs px-1 py-0.5 rounded mb-0.5 truncate"
                       title={`${ev.time ? ev.time + " • " : ""}${ev.summary}`}
                     >
                       {ev.time ? `${ev.time} ` : ""}

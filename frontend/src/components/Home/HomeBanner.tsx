@@ -8,7 +8,7 @@ const HomeBanner = () => {
 
   return (
     <>
-      <div className="min-h-[80vh] flex items-center justify-center from-[#e3f0ff] to-[#f8fafd] text-primary-600">
+      <div className="min-h-[80vh] flex items-center justify-center bg-gradient-to-r from-[#e3f0ff] to-[#f8fafd] text-primary-600">
         <div className="max-w-7xl mx-auto px-4 w-full">
           <div className="flex flex-col-reverse md:flex-row items-center">
             {/* Left content */}

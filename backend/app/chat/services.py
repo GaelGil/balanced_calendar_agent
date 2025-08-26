@@ -30,7 +30,6 @@ load_dotenv(Path("../../.env"))
 class ChatService:
     def __init__(self, user_id, calendar_service: CalendarService, session_id=None):
         self.calendar_service = calendar_service
-        # self.app = app
         self.user_id = user_id
         self.composio_user_id = "0000-1111-2222"
         self.session_id = session_id
@@ -40,6 +39,7 @@ class ChatService:
         self.composio = Composio()
         self.llm: OpenAI = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+        # with self.app.app_context():
         # Load existing chat session if session_id is provided
         if self.session_id:
             self.chat_session = ChatSession.query.get(self.session_id)

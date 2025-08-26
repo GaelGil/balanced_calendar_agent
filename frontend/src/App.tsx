@@ -33,7 +33,9 @@ function App() {
         </Route>
       </Routes>
 
-      <Footer />
+      <div className=" p-6 mx-auto md:mx-0 md:ml-8">
+        <Footer />
+      </div>
     </div>
   );
 }
