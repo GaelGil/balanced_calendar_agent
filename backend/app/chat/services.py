@@ -49,6 +49,7 @@ class ChatService:
             self.chat_session = ChatSession(user_id=self.user_id)
             db.session.add(self.chat_session)
             db.session.commit()
+            self.session_id = self.chat_session.id
 
         # Initialize chat_history from DB
         self.chat_history = self.get_chat_history()
@@ -103,10 +104,10 @@ class ChatService:
 
         # keep track of tool calls
         tool_calls = {}
-
+        init_response = ""
         # initial call
         for event in stream:
-            print(
+            logger.info(
                 f"\n[DEBUG EVENT] type={event.type}, idx={getattr(event, 'output_index', None)}, delta={getattr(event, 'delta', None)}"
             )
 
@@ -115,6 +116,7 @@ class ChatService:
                 # yield the text
                 yield json.dumps({"type": "init_response", "text": event.delta})
                 logger.info(f"response.output_text.delta: {event.delta}")
+                init_response += event.delta
                 # print(event.delta, end="", flush=True)
             # if there is no text, print a newline
             elif event.type == "response.output_text.done":
@@ -183,6 +185,7 @@ class ChatService:
                 logger.info(f"[DEBUG] Marked tool idx={idx} done")
 
         logger.info(f"TOOL CALLS: {tool_calls}")
+        self.add_chat_history(role="assistant", message=init_response)
 
         # Execute the tool calls
         for tool_idx, tool in tool_calls.items():
@@ -245,8 +248,8 @@ class ChatService:
                 f"[DEBUG] CHAT HISTORY AFTER FINAL LLM CALL: {self.get_chat_history()}"
             )
 
-            # logger.info("Assistant (final): ", end="", flush=True)
-            # Stream partial text
+            final_response = ""
+
             for ev in final_stream:
                 logger.info(
                     f"\n[DEBUG EVENT FINAL] type={ev.type}, delta={getattr(ev, 'delta', None)}"
@@ -254,11 +257,15 @@ class ChatService:
                 # if there is text, print it/yield it
                 if ev.type == "response.output_text.delta":
                     yield json.dumps({"type": "final_response", "text": ev.delta})
-                    logger.info(f"response.output_text.delta: {event.delta}")
+                    logger.info(f"response.output_text.delta: {ev.delta}")
+                    final_response += ev.delta
+
                     # print(ev.delta, end="", flush=True)
                 # if there is no text, print a newline
                 elif ev.type == "response.output_text.done":
                     print()
+            self.add_chat_history(role="assistant", message=final_response)
+
         pass
 
     def parse_tool_result(self, tool_name: str, tool_result: dict):

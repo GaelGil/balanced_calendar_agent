@@ -11,6 +11,9 @@ class ChatSession(db.Model):
     messages = db.relationship(
         "ChatMessage", back_populates="session", cascade="all, delete-orphan"
     )
+    tool_history = db.relationship(
+        "ToolHistory", back_populates="session", cascade="all, delete-orphan"
+    )
 
 
 class ChatMessage(db.Model):
@@ -24,3 +27,17 @@ class ChatMessage(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     session = db.relationship("ChatSession", back_populates="messages")
+
+
+class ToolHistory(db.Model):
+    __tablename__ = "tool_history"
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(
+        db.Integer, db.ForeignKey("chat_sessions.id"), nullable=False
+    )
+    user_id = db.Column(db.String, nullable=False)
+    tool_name = db.Column(db.String, nullable=False)
+    tool_input = db.Column(db.Text, nullable=False)
+    tool_output = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    session = db.relationship("ChatSession", back_populates="tool_history")

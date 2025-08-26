@@ -14,7 +14,7 @@ chat = Blueprint("chat", __name__)
 @chat_calendar_service_required
 def generate_response(chat_service: ChatService, message: str):
     try:
-        for chunk in chat_service.process_message(message):
+        for chunk in chat_service.process_message_stream(message):
             if isinstance(chunk, str):
                 yield f"data: {chunk}\n\n"
                 sys.stdout.flush()
