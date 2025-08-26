@@ -50,7 +50,7 @@ const CalendarPage = () => {
 
           {!chat && (
             <button
-              className="fixed bottom-6 right-6 bg-blue-600 rounded-full hover:bg-blue-700 text-white font-semibold p-6 shadow-lg hover:scale-105 transition duration-200"
+              className="fixed bottom-6 right-6 bg-blue-600 rounded hover:bg-blue-700 text-white font-semibold p-6 shadow-lg hover:scale-105 transition duration-200"
               onClick={() => setChat(true)}
             >
               Chat
@@ -59,7 +59,7 @@ const CalendarPage = () => {
 
           {chat && (
             <button
-              className="fixed top-4 right-4 w-14 h-14 bg-red-600 text-white font-bold rounded-full shadow-lg hover:bg-red-700 hover:scale-105 transition duration-200 z-50"
+              className="fixed top-4 right-4 w-14 h-14 bg-red-600 text-white font-bold rounded shadow-lg hover:bg-red-700 hover:scale-105 transition duration-200 z-50"
               onClick={() => setChat(false)}
             >
               x

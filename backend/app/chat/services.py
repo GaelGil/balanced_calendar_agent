@@ -317,7 +317,6 @@ class ChatService:
                     user_id=self.composio_user_id,
                     arguments=tool_args,
                 )
-            logger.info(f"CHAT HISTORY: {self.chat_history}")
             logger.info(f"Tool result: {result}")
             logger.info(f"Result type: {type(result)}")
             return result
