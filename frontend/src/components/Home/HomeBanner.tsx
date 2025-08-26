@@ -17,10 +17,9 @@ const HomeBanner = () => {
                 {PROJECT_NAME}
               </h1>
               <p className="text-lg md:text-xl text-gray-700 mb-8 text-secondary-300">
-                Lorem ipsum, dolor sit amet consectetur adipisicing elit.
-                Itaque, quaerat minima ducimus doloribus dolore, inventore
-                impedit iste maxime temporibus earum beatae tenetur quisquam
-                enim reprehenderit rem necessitatibus eaque omnis deserunt.
+                Your personal calendar assistant to help you balance your work
+                life. Our agent can assist you in creating events to balance
+                your work live.
               </p>
 
               {!user ? (
