@@ -8,6 +8,7 @@ from app.chat.utils.formaters import (
     parse_composio_event_search_results,
     format_free_slots_to_markdown,
     format_events_to_markdown,
+    format_event_to_markdown,
 )
 from openai import OpenAI
 from pathlib import Path
@@ -60,12 +61,12 @@ class ChatService:
             self.add_chat_history(role="developer", message=AGENT_PROMPT)
             self.chat_history = self.get_chat_history()
 
-    def add_tool_history(self, tool_name: str, tool_args: dict, tool_output: str):
+    def add_tool_history(self, tool_name: str, tool_args: dict, tool_output: dict):
         tool_history = ToolHistory(
             session_id=self.chat_session.id,
             tool_name=tool_name,
-            tool_input=str(tool_args),
-            tool_output=str(tool_output),
+            tool_input=json.dumps(tool_args),  # serialize dict
+            tool_output=json.dumps(tool_output),  # serialize dict
         )
         # with self.app.app_context():
         db.session.add(tool_history)
@@ -242,6 +243,7 @@ class ChatService:
 
             result = self.parse_tool_result(tool_name, result)
             logger.info(f"[DEBUG] Tool result for idx={tool_idx}: {result}")
+            self.add_tool_history(tool_name, parsed_args, result)
 
             # yield the tool result
             yield json.dumps(
@@ -312,6 +314,9 @@ class ChatService:
         elif tool_name == "get_events_in_month":
             parsed_result = format_events_to_markdown(tool_result)
             logger.info("Parsing get events in month result")
+        elif tool_name == "create_event" or tool_name == "update_event":
+            parsed_result = format_event_to_markdown(tool_result)
+            logger.info("Parsing create event result")
         elif tool_name == "calender_availability":
             parsed_result = format_free_slots_to_markdown(tool_result)
             logger.info("Parsing calender availability result")
@@ -354,7 +359,6 @@ class ChatService:
                     user_id=self.composio_user_id,
                     arguments=tool_args,
                 )
-            self.add_tool_history(tool_name, tool_args, result)
             logger.info(f"Tool result: {result}")
             logger.info(f"Result type: {type(result)}")
             return result

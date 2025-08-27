@@ -1,7 +1,8 @@
 import os
 from google.oauth2.credentials import Credentials
 
-SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
+SCOPES = ["https://www.googleapis.com/auth/calendar"]
+CLIENT_SECRETS_FILE = os.path.join(os.getcwd(), "credentials.json")
 
 
 def save_credentials(user_id: str, creds: Credentials) -> None:

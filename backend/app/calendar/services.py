@@ -2,9 +2,9 @@ import os
 import datetime
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
-
-SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
-CLIENT_SECRETS_FILE = os.path.join(os.getcwd(), "credentials.json")
+from google_auth_oauthlib.flow import Flow
+from flask import url_for, jsonify
+from app.calendar.utils import SCOPES, CLIENT_SECRETS_FILE
 
 
 class CalendarService:
@@ -18,6 +18,26 @@ class CalendarService:
         self.load_credentials = creds_loader
         self.save_credentials = creds_saver
         self.creds = self.load_credentials(user_id)
+
+    def auth_calendar(self):
+        if not os.path.exists(CLIENT_SECRETS_FILE):  # check if file exists
+            return jsonify({"error": "Missing credentials.json"}), 500
+
+        # set up OAuth 2.0 flow
+        flow = Flow.from_client_secrets_file(
+            CLIENT_SECRETS_FILE,
+            scopes=SCOPES,
+            redirect_uri=url_for("calendar.oauth2callback", _external=True),
+        )
+        print(f"SCOPES in services.py: {SCOPES}")
+        # generate authorization URL
+        auth_url, state = flow.authorization_url(
+            access_type="offline",
+            include_granted_scopes="false",  # force fresh consent
+            prompt="consent",
+        )
+        # store state
+        return auth_url, state
 
     def get_service(self):
         if not self.creds:

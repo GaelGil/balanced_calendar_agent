@@ -1,35 +1,23 @@
-import os
 from flask import Blueprint, session, redirect, request, url_for, jsonify, current_app
 from google_auth_oauthlib.flow import Flow
 from app.auth.decorators import login_required
 from app.calendar.utils import save_credentials
 from app.calendar.decorators import calendar_service_required
 from app.calendar.services import CalendarService
+from app.calendar.utils import SCOPES, CLIENT_SECRETS_FILE
 
 calendar = Blueprint("calendar", __name__)
-SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
-CLIENT_SECRETS_FILE = os.path.join(os.getcwd(), "credentials.json")
 
 
 @calendar.route("/calendar/authorize")
 @login_required
-def authorize_calendar():
+@calendar_service_required
+def authorize_calendar(calendar_service: CalendarService):
     """Redirect user to Google consent screen."""
-    if not os.path.exists(CLIENT_SECRETS_FILE):  # check if file exists
-        return jsonify({"error": "Missing credentials.json"}), 500
-
-    # set up OAuth 2.0 flow
-    flow = Flow.from_client_secrets_file(
-        CLIENT_SECRETS_FILE,
-        scopes=SCOPES,
-        redirect_uri=url_for("calendar.oauth2callback", _external=True),
-    )
-    # generate authorization URL
-    auth_url, state = flow.authorization_url(
-        access_type="offline", include_granted_scopes="true"
-    )
-    # store state
+    session.pop("oauth_state", None)
+    auth_url, state = calendar_service.auth_calendar()
     session["oauth_state"] = state
+
     # redirect to consent screen
     return redirect(auth_url)
 
@@ -37,7 +25,6 @@ def authorize_calendar():
 @calendar.route("/calendar/oauth2callback")
 @login_required
 def oauth2callback():
-    """Handle Google redirect with auth code."""
     # set up OAuth 2.0 flow
     flow = Flow.from_client_secrets_file(
         CLIENT_SECRETS_FILE,
@@ -65,13 +52,13 @@ def oauth2callback():
 @calendar.route("/calendar/events")
 @login_required
 @calendar_service_required
-def list_events(service: CalendarService):
-    events = service.get_events_in_month()
+def list_events(calendar_service: CalendarService):
+    events = calendar_service.get_events_in_month()
     return jsonify(events)
 
 
 @calendar.route("/calendar/status")
 @login_required
 @calendar_service_required
-def calendar_status(service: CalendarService):
-    return jsonify({"connected": service.status()})
+def calendar_status(calendar_service: CalendarService):
+    return jsonify({"connected": calendar_service.status()})

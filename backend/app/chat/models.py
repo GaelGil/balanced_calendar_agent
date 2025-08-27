@@ -1,5 +1,6 @@
 from app.extensions import db
 from datetime import datetime
+from sqlalchemy.dialects.postgresql import JSON
 
 
 class ChatSession(db.Model):
@@ -36,7 +37,7 @@ class ToolHistory(db.Model):
         db.Integer, db.ForeignKey("chat_sessions.id"), nullable=False
     )
     tool_name = db.Column(db.String, nullable=False)
-    tool_input = db.Column(db.Text, nullable=False)
+    tool_input = db.Column(JSON)  # <-- use JSON type
     tool_output = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     session = db.relationship("ChatSession", back_populates="tool_history")

@@ -15,12 +15,8 @@ def calendar_service_required(f):
         if not user_id:
             return redirect(url_for("auth.login"))
         # create CalendarService
-        service = CalendarService(user_id, load_credentials, save_credentials)
-        try:
-            # validate credentials
-            service.get_service()
-        except ValueError:
-            return redirect(url_for("calendar.authorize_calendar"))
-        return f(service, *args, **kwargs)
+        calender_service = CalendarService(user_id, load_credentials, save_credentials)
+
+        return f(calender_service, *args, **kwargs)
 
     return decorated

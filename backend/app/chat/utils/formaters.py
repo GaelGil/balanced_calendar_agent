@@ -33,6 +33,30 @@ def parse_composio_event_search_results(composio_result: dict) -> dict:
         return {"error": f"Failed to parse COMPOSIO news search results: {str(e)}"}
 
 
+def format_event_to_markdown(event: dict) -> str:
+    if event:
+        id = event.get("id", "No ID")
+        start = event["start"].get("dateTime", event["start"].get("date"))
+        end = event["end"].get("dateTime", event["end"].get("date"))
+        summary = event.get("summary", "No Title")
+        description = event.get("description", "No Description")
+        location = event.get("location", "No Location")
+        attendees = event.get("attendees", "No Attendees")
+
+        entry = f"""### Event: {summary}
+                - **ID:** {id}
+                - **Start:** {start}  
+                - **End:** {end}  
+                - **Location:** {location}  
+                - **Description:** {description}
+                - **Attendees:** {attendees}
+  
+
+                """
+        return entry.strip()
+    return "### 📅 No events found."
+
+
 def format_events_to_markdown(events: list) -> str:
     """
     Convert Google Calendar events into a Markdown string.
