@@ -15,10 +15,22 @@ OPENAI_API_KEY=
 COMPOSIO_API_KEY=
 ```
 
-Lastly to run you can do
+You can run in docker by going into the root directory of the folder and doing.
 
 ```sh
 docker compose up --build
+```
+
+Or you can run them individually like this
+
+```sh
+cd ./backend
+make install
+make run
+
+cd ./frontend
+bun run dev
+
 ```
 
 # Demo
